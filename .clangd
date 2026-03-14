@@ -1,0 +1,8 @@
+CompileFlags:
+  Add:
+    - --target=wasm32
+    - -nostdlib
+    - -DCLAY_IMPLEMENTATION
+    - -DCLAY_WASM
+    - -Isrc
+    - -I.

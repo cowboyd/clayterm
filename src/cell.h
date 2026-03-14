@@ -1,0 +1,30 @@
+/* cell.h — cell type and buffer operations */
+
+#ifndef CELL_H
+#define CELL_H
+
+#include <stdint.h>
+
+typedef struct {
+  uint32_t ch;
+  uint32_t fg; /* 0xAARRGGBB — upper byte: attribute flags */
+  uint32_t bg; /* 0xAARRGGBB — upper byte: attribute flags */
+} Cell;
+
+/* Attribute flags (packed into high byte of fg) */
+#define ATTR_BOLD 0x01000000
+#define ATTR_DIM 0x02000000
+#define ATTR_ITALIC 0x04000000
+#define ATTR_UNDERLINE 0x08000000
+#define ATTR_BLINK 0x10000000
+#define ATTR_REVERSE 0x20000000
+#define ATTR_STRIKEOUT 0x40000000
+#define ATTR_DEFAULT 0x80000000 /* use terminal default color */
+
+#define ATTR_MASK 0xFF000000
+#define COLOR_MASK 0x00FFFFFF
+
+void cells_clear(Cell *buf, int w, int h);
+int cell_cmp(Cell *a, Cell *b);
+
+#endif

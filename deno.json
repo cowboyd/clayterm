@@ -1,0 +1,15 @@
+{
+  "tasks": {
+    "test": "deno test --allow-read"
+  },
+  "imports": {
+    "@std/testing": "jsr:@std/testing@1",
+    "@std/expect": "jsr:@std/expect@1"
+  },
+  "fmt": {
+    "exclude": ["clay"]
+  },
+  "lint": {
+    "exclude": ["clay"]
+  }
+}

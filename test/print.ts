@@ -1,0 +1,54 @@
+/**
+ * Interpret ANSI escape sequences into a plain text grid.
+ * Handles CSI cursor positioning (row;colH) and UTF-8 text.
+ * Strips all SGR (color/style) sequences.
+ */
+export function print(ansi: string, w: number, h: number): string {
+  const grid: string[][] = [];
+  for (let y = 0; y < h; y++) {
+    grid[y] = [];
+    for (let x = 0; x < w; x++) {
+      grid[y][x] = " ";
+    }
+  }
+
+  let x = 0;
+  let y = 0;
+  let i = 0;
+
+  while (i < ansi.length) {
+    if (ansi[i] === "\x1b" && ansi[i + 1] === "[") {
+      // parse CSI sequence
+      i += 2;
+      let params = "";
+      while (
+        i < ansi.length && ansi[i] >= "0" && ansi[i] <= "9" ||
+        ansi[i] === ";" || ansi[i] === "?"
+      ) {
+        params += ansi[i++];
+      }
+      const cmd = ansi[i++];
+
+      if (cmd === "H") {
+        // cursor position: row;col (1-indexed)
+        const parts = params.split(";");
+        y = (parseInt(parts[0]) || 1) - 1;
+        x = (parseInt(parts[1]) || 1) - 1;
+      } else if (cmd === "m") {
+        // SGR — ignore
+      }
+      // ignore all other CSI sequences (?25l, ?25h, etc.)
+    } else {
+      // regular character — could be multi-byte UTF-8
+      const cp = ansi.codePointAt(i)!;
+      const ch = String.fromCodePoint(cp);
+      if (x >= 0 && x < w && y >= 0 && y < h) {
+        grid[y][x] = ch;
+      }
+      x++;
+      i += ch.length;
+    }
+  }
+
+  return grid.map((row) => row.join("")).join("\n");
+}
