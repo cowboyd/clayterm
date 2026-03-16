@@ -3,6 +3,8 @@
 #ifndef CLAYTERM_H
 #define CLAYTERM_H
 
+#include <stdint.h>
+
 #include "cell.h"
 
 struct Clayterm;
@@ -10,7 +12,7 @@ struct Clayterm;
 /* WASM exports */
 int clayterm_size(int w, int h);
 struct Clayterm *init(void *mem, int w, int h);
-void render(struct Clayterm *ct, Clay_RenderCommandArray cmds);
+void reduce(struct Clayterm *ct, uint32_t *buf, int len);
 char *output(struct Clayterm *ct);
 int length(struct Clayterm *ct);
 void measure(int ret, int txt);

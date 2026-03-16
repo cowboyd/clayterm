@@ -10,7 +10,8 @@ LDFLAGS = -Wl,--no-entry \
           -Wl,--import-memory \
           -Wl,--stack-first \
           -Wl,--export-all \
-          -Wl,--allow-undefined
+          -Wl,--undefined=Clay__MeasureText \
+          -Wl,--undefined=Clay__QueryScrollOffset
 
 all: $(TARGET)
 	@echo "Built $(TARGET) ($$(wc -c < $(TARGET)) bytes)"
