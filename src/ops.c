@@ -61,6 +61,7 @@ static Clay_SizingAxis decode_axis(uint32_t *buf, int len, int *i) {
 
 void reduce(struct Clayterm *ct, uint32_t *buf, int len) {
   int i = 0;
+  uint32_t idx = 0;
 
   Clay_BeginLayout();
 
@@ -77,7 +78,7 @@ void reduce(struct Clayterm *ct, uint32_t *buf, int len) {
 
       if (id_len > 0) {
         Clay_String str = {.length = (int32_t)id_len, .chars = id_chars};
-        Clay_ElementId eid = Clay__HashString(str, 0);
+        Clay_ElementId eid = Clay__HashString(str, idx++);
         Clay__OpenElementWithId(eid);
       } else {
         Clay__OpenElement();

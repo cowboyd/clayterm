@@ -3,6 +3,8 @@ import { createTerm, type Term } from "../term.ts";
 import { close, grow, open, rgba, text } from "../ops.ts";
 import { print } from "./print.ts";
 
+const decode = (bytes: Uint8Array) => new TextDecoder().decode(bytes);
+
 describe("term", () => {
   let term: Term;
 
@@ -11,19 +13,19 @@ describe("term", () => {
   });
 
   it("renders hello world", () => {
-    const out = print(term.render([
+    const out = print(decode(term.render([
       open("root", {
         layout: { width: grow(), height: grow(), direction: "ttb" },
       }),
       text("Hello, World!"),
       close(),
-    ]), 40, 10);
+    ])), 40, 10);
 
     expect(out).toContain("Hello, World!");
   });
 
   it("renders borders and padding", () => {
-    const out = print(term.render([
+    const out = print(decode(term.render([
       open("box", {
         layout: {
           width: grow(),
@@ -42,7 +44,7 @@ describe("term", () => {
       }),
       text("padded"),
       close(),
-    ]), 40, 10);
+    ])), 40, 10);
 
     expect(out).toEqual(`
 ╭──────────────────────────────────────╮
@@ -56,4 +58,5 @@ describe("term", () => {
 │                                      │
 ╰──────────────────────────────────────╯`.trim());
   });
+
 });

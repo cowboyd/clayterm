@@ -25,7 +25,7 @@ WebAssembly does: Deno, Node, Bun, browsers, or any other runtime.
                                  |   -> diff against (front) |
                                  |   -> escape bytes         |
 +---------------+                |                           |
-|               |  ANSI string   |                           |
+|               | ANSI byte array|                           |
 | stdout.write  | <============= |                           |
 |               |                |                           |
 +---------------+                +---------------------------+
@@ -55,7 +55,7 @@ const ansi = term.render([
   close(),
 ]);
 
-Deno.stdout.writeSync(new TextEncoder().encode(ansi));
+Deno.stdout.writeSync(ansi);
 ```
 
 ## Development

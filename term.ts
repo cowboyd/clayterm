@@ -7,10 +7,8 @@ export interface TermOptions {
 }
 
 export interface Term {
-  render(ops: Op[]): string;
+  render(ops: Op[]): Uint8Array;
 }
-
-const decoder = new TextDecoder();
 
 export async function createTerm(options: TermOptions): Promise<Term> {
   const { width, height } = options;
@@ -20,11 +18,13 @@ export async function createTerm(options: TermOptions): Promise<Term> {
   );
 
   return {
-    render(ops: Op[]): string {
+    render(ops: Op[]): Uint8Array {
       const len = pack(ops, memory.buffer, opsBuf);
       reduce(statePtr, opsBuf, len);
-      return decoder.decode(
-        new Uint8Array(memory.buffer, output(statePtr), length(statePtr)),
+      return new Uint8Array(
+        memory.buffer,
+        output(statePtr),
+        length(statePtr),
       );
     },
   };

@@ -347,17 +347,11 @@ void render(struct Clayterm *ct, Clay_RenderCommandArray cmds) {
 
   cells_clear(ct->back, ct->w, ct->h);
 
-  /* hide cursor */
-  buf_str(&ct->out, "\x1b[?25l");
-
   /* walk Clay render commands into back buffer */
   walk(ct, cmds);
 
   /* diff front vs back, emit escape sequences */
   present(ct);
-
-  /* show cursor */
-  buf_str(&ct->out, "\x1b[?25h");
 }
 
 char *output(struct Clayterm *ct) { return ct->out.data; }
