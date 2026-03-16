@@ -1,8 +1,8 @@
 /* ops.c — command buffer reducer for Clay layout commands */
 
 #include "ops.h"
-#include "clayterm.h"
 #include "clay/clay.h"
+#include "clayterm.h"
 
 /* ── Command buffer helpers ────────────────────────────────────────── */
 

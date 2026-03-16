@@ -1,15 +1,25 @@
 {
+  "name": "@clayterm/clayterm",
   "tasks": {
-    "test": "deno test --allow-read"
+    "test": "deno test --allow-read",
+    "fmt": "deno fmt && clang-format -i src/*.c src/*.h",
+    "fmt:check": "deno fmt --check && clang-format --dry-run --Werror src/*.c src/*.h",
+    "build:npm": "deno run -A tasks/build-npm.ts",
+    "build:jsr": "deno run -A tasks/build-jsr.ts"
   },
   "imports": {
     "@std/testing": "jsr:@std/testing@1",
-    "@std/expect": "jsr:@std/expect@1"
+    "@std/expect": "jsr:@std/expect@1",
+    "dnt": "jsr:@deno/dnt@0.42.3"
+  },
+  "exports": "./mod.ts",
+  "publish": {
+    "include": ["*.ts", "clayterm.wasm"]
   },
   "fmt": {
-    "exclude": ["clay"]
+    "exclude": ["clay", "build"]
   },
   "lint": {
-    "exclude": ["clay"]
+    "exclude": ["clay", "build"]
   }
 }

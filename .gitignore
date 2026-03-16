@@ -1,2 +1,3 @@
 /.agent-shell/
 /clayterm.wasm
+/build/

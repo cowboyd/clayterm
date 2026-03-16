@@ -13,38 +13,46 @@ describe("term", () => {
   });
 
   it("renders hello world", () => {
-    const out = print(decode(term.render([
-      open("root", {
-        layout: { width: grow(), height: grow(), direction: "ttb" },
-      }),
-      text("Hello, World!"),
-      close(),
-    ])), 40, 10);
+    const out = print(
+      decode(term.render([
+        open("root", {
+          layout: { width: grow(), height: grow(), direction: "ttb" },
+        }),
+        text("Hello, World!"),
+        close(),
+      ])),
+      40,
+      10,
+    );
 
     expect(out).toContain("Hello, World!");
   });
 
   it("renders borders and padding", () => {
-    const out = print(decode(term.render([
-      open("box", {
-        layout: {
-          width: grow(),
-          height: grow(),
-          padding: { left: 5, top: 5 },
-          direction: "ttb",
-        },
-        border: {
-          color: rgba(0, 255, 0),
-          left: 1,
-          right: 1,
-          top: 1,
-          bottom: 1,
-        },
-        cornerRadius: { tl: 1, tr: 1, bl: 1, br: 1 },
-      }),
-      text("padded"),
-      close(),
-    ])), 40, 10);
+    const out = print(
+      decode(term.render([
+        open("box", {
+          layout: {
+            width: grow(),
+            height: grow(),
+            padding: { left: 5, top: 5 },
+            direction: "ttb",
+          },
+          border: {
+            color: rgba(0, 255, 0),
+            left: 1,
+            right: 1,
+            top: 1,
+            bottom: 1,
+          },
+          cornerRadius: { tl: 1, tr: 1, bl: 1, br: 1 },
+        }),
+        text("padded"),
+        close(),
+      ])),
+      40,
+      10,
+    );
 
     expect(out).toEqual(`
 ╭──────────────────────────────────────╮
@@ -58,5 +66,4 @@ describe("term", () => {
 │                                      │
 ╰──────────────────────────────────────╯`.trim());
   });
-
 });
