@@ -57,7 +57,7 @@ jobs:
         run: deno task build:jsr 0.0.0-verify.0
 
       - name: dry run publish
-        run: deno publish --dry-run
+        run: deno publish --dry-run --allow-dirty
 
   npm:
     needs: test
