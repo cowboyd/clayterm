@@ -7,7 +7,11 @@ export interface Native {
   length(ct: number): number;
 }
 
-const wasm = await Deno.readFile(new URL("./clayterm.wasm", import.meta.url));
+import { readFile } from "node:fs/promises";
+
+const wasm = new Uint8Array(
+  await readFile(new URL("./clayterm.wasm", import.meta.url)),
+);
 const compiled = await WebAssembly.compile(wasm);
 
 export async function load(w: number, h: number): Promise<Native> {
