@@ -11,9 +11,13 @@
   "imports": {
     "@std/testing": "jsr:@std/testing@1",
     "@std/expect": "jsr:@std/expect@1",
+    "@sinclair/typebox": "npm:@sinclair/typebox@^0.34",
     "dnt": "jsr:@deno/dnt@0.42.3"
   },
-  "exports": "./mod.ts",
+  "exports": {
+    ".": "./mod.ts",
+    "./validate": "./validate.ts"
+  },
   "publish": {
     "include": ["*.ts", "clayterm.wasm"]
   },

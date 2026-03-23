@@ -14,7 +14,10 @@
     "jsr:@std/path@^1.1.4": "1.1.4",
     "jsr:@std/testing@1": "1.0.17",
     "jsr:@ts-morph/bootstrap@0.27": "0.27.0",
-    "jsr:@ts-morph/common@0.27": "0.27.0"
+    "jsr:@ts-morph/common@0.27": "0.27.0",
+    "npm:@sinclair/typebox@*": "0.34.48",
+    "npm:@sinclair/typebox@0.34": "0.34.48",
+    "npm:valrs@*": "0.1.0"
   },
   "jsr": {
     "@david/code-block-writer@13.0.3": {
@@ -83,11 +86,20 @@
       ]
     }
   },
+  "npm": {
+    "@sinclair/typebox@0.34.48": {
+      "integrity": "sha512-kKJTNuK3AQOrgjjotVxMrCn1sUJwM76wMszfq1kdU4uYVJjvEWuFQ6HgvLt4Xz3fSmZlTOxJ/Ie13KnIcWQXFA=="
+    },
+    "valrs@0.1.0": {
+      "integrity": "sha512-BqVkjx3qhsRLHerblLDoqEx0OEx7ms0DB6LPv40oWkMfFKUVKrqVuklaGdrPrHyubC5hSHYfEtUiQXrCkC6xHQ=="
+    }
+  },
   "workspace": {
     "dependencies": [
       "jsr:@deno/dnt@0.42.3",
       "jsr:@std/expect@1",
-      "jsr:@std/testing@1"
+      "jsr:@std/testing@1",
+      "npm:@sinclair/typebox@0.34"
     ]
   }
 }
