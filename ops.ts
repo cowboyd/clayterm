@@ -62,8 +62,14 @@ function packString(view: DataView, bytes: Uint8Array, o: number): number {
   return o;
 }
 
-export function pack(ops: Op[], mem: ArrayBufferLike, offset: number): number {
+export function pack(
+  ops: Op[],
+  mem: ArrayBufferLike,
+  offset: number,
+  limit?: number,
+): number {
   let view = new DataView(mem);
+  let end = limit ?? mem.byteLength;
   let o = offset;
 
   for (let op of ops) {
@@ -191,6 +197,13 @@ export function pack(ops: Op[], mem: ArrayBufferLike, offset: number): number {
         o = packString(view, str, o);
         break;
       }
+    }
+    if (o > end) {
+      throw new RangeError(
+        `ops exceed buffer capacity (${o - offset} bytes packed, ${
+          end - offset
+        } available)`,
+      );
     }
   }
 

@@ -20,7 +20,7 @@ export async function createTerm(options: TermOptions): Promise<Term> {
 
   return {
     render(ops: Op[]): Uint8Array {
-      let len = pack(ops, memory.buffer, opsBuf);
+      let len = pack(ops, memory.buffer, opsBuf, memory.buffer.byteLength);
       reduce(statePtr, opsBuf, len);
       return new Uint8Array(
         memory.buffer,

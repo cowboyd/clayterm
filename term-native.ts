@@ -10,7 +10,7 @@ export interface Native {
 import { compiled } from "./wasm.ts";
 
 export async function createTermNative(w: number, h: number): Promise<Native> {
-  let memory = new WebAssembly.Memory({ initial: 256 });
+  let memory = new WebAssembly.Memory({ initial: 2 });
   let exports: Record<string, CallableFunction> = {};
 
   let instance = await WebAssembly.instantiate(compiled, {
@@ -49,6 +49,15 @@ export async function createTermNative(w: number, h: number): Promise<Native> {
 
   let heap = ct.__heap_base.value as number;
   let size = ct.clayterm_size(w, h);
+
+  // grow memory to fit heap + state + ops buffer (1MB headroom for ops)
+  let needed = heap + size + 1024 * 1024;
+  let pages = Math.ceil(needed / 65536);
+  let current = memory.buffer.byteLength / 65536;
+  if (pages > current) {
+    memory.grow(pages - current);
+  }
+
   let statePtr = ct.init(heap, w, h);
   let opsBuf = (heap + size + 3) & ~3;
 
