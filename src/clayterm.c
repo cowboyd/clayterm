@@ -335,8 +335,6 @@ static Clay_SizingAxis decode_axis(uint32_t *buf, int len, int *i) {
 
 /* ── Public API ───────────────────────────────────────────────────── */
 
-static int align8(int n) { return (n + 7) & ~7; }
-
 static int align64(int n) { return (n + 63) & ~63; }
 
 int clayterm_size(int w, int h) {

@@ -1,7 +1,11 @@
 # clayterm
 
-A terminal rendering backend for [Clay](https://github.com/nicbarker/clay),
-compiled to WebAssembly.
+A terminal rendering backend for [Clay](https://github.com/nicbarker/clay), and
+a terminal input event parser compiled to WebAssembly.
+
+## Architecture
+
+### Output
 
 With every frame, the entire UI tree is packed into a flat byte array and sent
 to WASM in a single call. On the C side, Clay runs layout, render commands are
@@ -30,7 +34,38 @@ WebAssembly does: Deno, Node, Bun, browsers, or any other runtime.
 +---------------+                +---------------------------+
 ```
 
+### Input
+
+Raw bytes from stdin are fed into a WASM-based parser that recognizes VT/ANSI
+escape sequences, UTF-8 codepoints, and mouse protocols (VT200, SGR, urxvt). The
+parser maintains its own internal buffer so partial sequences that arrive across
+read boundaries are reassembled automatically. A lone ESC byte is held for a
+configurable latency window (default 25ms) before being emitted, giving
+multi-byte sequences time to arrive.
+
+```
+ TypeScript                        WASM (C)
++---------------+                +---------------------------+
+|               |  raw byte array|                           |
+| stdin.read    | =============> | trie match (keys/seqs)    |
+|               |                |   -> mouse protocol parse |
+|               |                |   -> UTF-8 decode         |
++---------------+                |   -> ESC latency timer    |
+                                 |   -> event array          |
++---------------+                |                           |
+|               |  events[]      |                           |
+| CharEvent     | <============= |                           |
+| KeyEvent      |                |                           |
+| MouseEvent    |                +---------------------------+
+| DragEvent     |
+| WheelEvent    |
+| ResizeEvent   |
++---------------+
+```
+
 ## Usage
+
+### Output
 
 ```typescript
 import { close, createTerm, grow, open, rgba, text } from "clayterm";
@@ -57,7 +92,38 @@ const ansi = term.render([
   close(),
 ]);
 
-Deno.stdout.writeSync(ansi);
+process.stdout.write(ansi);
+```
+
+### Input
+
+```typescript
+import { createInput } from "clayterm/input";
+
+const input = await createInput({ escLatency: 25 });
+
+process.stdin.setRawMode(true);
+let timer: ReturnType<typeof setTimeout> | undefined;
+
+process.stdin.on("data", (buf) => {
+  clearTimeout(timer);
+
+  let { events, pending } = input.scan(new Uint8Array(buf));
+
+  for (let event of events) {
+    dispatch(event);
+  }
+
+  // if a lone ESC is pending, wait and re-scan to flush it
+  if (pending) {
+    timer = setTimeout(() => {
+      let flush = input.scan();
+      for (let event of flush.events) {
+        dispatch(event);
+      }
+    }, pending.delay);
+  }
+});
 ```
 
 ## Development

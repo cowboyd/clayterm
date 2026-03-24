@@ -7,18 +7,13 @@ export interface Native {
   length(ct: number): number;
 }
 
-import { readFile } from "node:fs/promises";
+import { compiled } from "./wasm.ts";
 
-const wasm = new Uint8Array(
-  await readFile(new URL("./clayterm.wasm", import.meta.url)),
-);
-const compiled = await WebAssembly.compile(wasm);
+export async function createTermNative(w: number, h: number): Promise<Native> {
+  let memory = new WebAssembly.Memory({ initial: 256 });
+  let exports: Record<string, CallableFunction> = {};
 
-export async function load(w: number, h: number): Promise<Native> {
-  const memory = new WebAssembly.Memory({ initial: 256 });
-  const exports: Record<string, CallableFunction> = {};
-
-  const instance = await WebAssembly.instantiate(compiled, {
+  let instance = await WebAssembly.instantiate(compiled, {
     env: { memory },
     clay: {
       measureTextFunction(
@@ -34,7 +29,7 @@ export async function load(w: number, h: number): Promise<Native> {
         _elementId: number,
         _userData: number,
       ) {
-        const view = new DataView(memory.buffer);
+        let view = new DataView(memory.buffer);
         view.setFloat32(ret, 0, true);
         view.setFloat32(ret + 4, 0, true);
       },
@@ -43,7 +38,7 @@ export async function load(w: number, h: number): Promise<Native> {
 
   Object.assign(exports, instance.exports);
 
-  const ct = exports as unknown as {
+  let ct = exports as unknown as {
     __heap_base: WebAssembly.Global;
     clayterm_size(w: number, h: number): number;
     init(mem: number, w: number, h: number): number;
@@ -52,10 +47,10 @@ export async function load(w: number, h: number): Promise<Native> {
     length(ct: number): number;
   };
 
-  const heap = ct.__heap_base.value as number;
-  const size = ct.clayterm_size(w, h);
-  const statePtr = ct.init(heap, w, h);
-  const opsBuf = (heap + size + 3) & ~3;
+  let heap = ct.__heap_base.value as number;
+  let size = ct.clayterm_size(w, h);
+  let statePtr = ct.init(heap, w, h);
+  let opsBuf = (heap + size + 3) & ~3;
 
   return {
     memory,

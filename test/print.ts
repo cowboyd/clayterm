@@ -4,7 +4,7 @@
  * Strips all SGR (color/style) sequences.
  */
 export function print(ansi: string, w: number, h: number): string {
-  const grid: string[][] = [];
+  let grid: string[][] = [];
   for (let y = 0; y < h; y++) {
     grid[y] = [];
     for (let x = 0; x < w; x++) {
@@ -27,11 +27,11 @@ export function print(ansi: string, w: number, h: number): string {
       ) {
         params += ansi[i++];
       }
-      const cmd = ansi[i++];
+      let cmd = ansi[i++];
 
       if (cmd === "H") {
         // cursor position: row;col (1-indexed)
-        const parts = params.split(";");
+        let parts = params.split(";");
         y = (parseInt(parts[0]) || 1) - 1;
         x = (parseInt(parts[1]) || 1) - 1;
       } else if (cmd === "m") {
@@ -40,8 +40,8 @@ export function print(ansi: string, w: number, h: number): string {
       // ignore all other CSI sequences (?25l, ?25h, etc.)
     } else {
       // regular character — could be multi-byte UTF-8
-      const cp = ansi.codePointAt(i)!;
-      const ch = String.fromCodePoint(cp);
+      let cp = ansi.codePointAt(i)!;
+      let ch = String.fromCodePoint(cp);
       if (x >= 0 && x < w && y >= 0 && y < h) {
         grid[y][x] = ch;
       }

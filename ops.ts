@@ -63,10 +63,10 @@ function packString(view: DataView, bytes: Uint8Array, o: number): number {
 }
 
 export function pack(ops: Op[], mem: ArrayBufferLike, offset: number): number {
-  const view = new DataView(mem);
+  let view = new DataView(mem);
   let o = offset;
 
-  for (const op of ops) {
+  for (let op of ops) {
     switch (op.id) {
       case OP_CLOSE_ELEMENT:
         view.setUint32(o, op.id, true);
@@ -77,7 +77,7 @@ export function pack(ops: Op[], mem: ArrayBufferLike, offset: number): number {
         view.setUint32(o, OP_OPEN_ELEMENT, true);
         o += 4;
 
-        const id = encoder.encode(op.name);
+        let id = encoder.encode(op.name);
         o = packString(view, id, o);
 
         let mask = 0;
@@ -91,11 +91,11 @@ export function pack(ops: Op[], mem: ArrayBufferLike, offset: number): number {
         o += 4;
 
         if (op.layout) {
-          const l = op.layout;
+          let l = op.layout;
           o = packAxis(view, o, l.width ?? { type: "fit" });
           o = packAxis(view, o, l.height ?? { type: "fit" });
 
-          const p = l.padding ?? {};
+          let p = l.padding ?? {};
           view.setUint32(
             o,
             (p.left ?? 0) | ((p.right ?? 0) << 8) | ((p.top ?? 0) << 16) |
@@ -121,7 +121,7 @@ export function pack(ops: Op[], mem: ArrayBufferLike, offset: number): number {
         }
 
         if (op.cornerRadius) {
-          const cr = op.cornerRadius;
+          let cr = op.cornerRadius;
           view.setUint32(
             o,
             (cr.tl ?? 0) | ((cr.tr ?? 0) << 8) | ((cr.bl ?? 0) << 16) |
@@ -132,7 +132,7 @@ export function pack(ops: Op[], mem: ArrayBufferLike, offset: number): number {
         }
 
         if (op.border) {
-          const b = op.border;
+          let b = op.border;
           view.setUint32(o, b.color, true);
           o += 4;
           view.setUint32(
@@ -154,7 +154,7 @@ export function pack(ops: Op[], mem: ArrayBufferLike, offset: number): number {
         }
 
         if (op.floating) {
-          const f = op.floating;
+          let f = op.floating;
           view.setFloat32(o, f.x ?? 0, true);
           o += 4;
           view.setFloat32(o, f.y ?? 0, true);
@@ -187,7 +187,7 @@ export function pack(ops: Op[], mem: ArrayBufferLike, offset: number): number {
         );
         o += 4;
 
-        const str = encoder.encode(op.content);
+        let str = encoder.encode(op.content);
         o = packString(view, str, o);
         break;
       }

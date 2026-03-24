@@ -16,3 +16,12 @@ void *memset(void *dst, int c, size_t n) {
     *d++ = (unsigned char)c;
   return dst;
 }
+
+size_t strlen(const char *s) {
+  size_t n = 0;
+  while (s[n])
+    n++;
+  return n;
+}
+
+int align8(int n) { return (n + 7) & ~7; }

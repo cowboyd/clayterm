@@ -19,7 +19,7 @@ static const unsigned char utf8_length[256] = {
 
 static const unsigned char utf8_mask[6] = {0x7f, 0x1f, 0x0f, 0x07, 0x03, 0x01};
 
-static int utf8_len(char c) { return utf8_length[(unsigned char)c]; }
+int utf8_len(char c) { return utf8_length[(unsigned char)c]; }
 
 int utf8_decode(uint32_t *out, const char *c) {
   if (*c == '\0')

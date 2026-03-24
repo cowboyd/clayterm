@@ -4,13 +4,6 @@
 #include "mem.h"
 #include "utf8.h"
 
-static size_t strlen(const char *s) {
-  size_t n = 0;
-  while (s[n])
-    n++;
-  return n;
-}
-
 void buf_put(Buffer *b, const char *s, int n) {
   if (b->length + n > b->capacity)
     return;

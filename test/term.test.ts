@@ -13,7 +13,7 @@ describe("term", () => {
   });
 
   it("renders hello world", () => {
-    const out = print(
+    let out = print(
       decode(term.render([
         open("root", {
           layout: { width: grow(), height: grow(), direction: "ttb" },
@@ -29,7 +29,7 @@ describe("term", () => {
   });
 
   it("renders borders and padding", () => {
-    const out = print(
+    let out = print(
       decode(term.render([
         open("box", {
           layout: {

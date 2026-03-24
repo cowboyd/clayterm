@@ -1,5 +1,5 @@
 import { type Op, pack } from "./ops.ts";
-import { load } from "./native.ts";
+import { createTermNative } from "./term-native.ts";
 
 export interface TermOptions {
   height: number;
@@ -11,15 +11,16 @@ export interface Term {
 }
 
 export async function createTerm(options: TermOptions): Promise<Term> {
-  const { width, height } = options;
-  const { memory, statePtr, opsBuf, reduce, output, length } = await load(
-    width,
-    height,
-  );
+  let { width, height } = options;
+  let { memory, statePtr, opsBuf, reduce, output, length } =
+    await createTermNative(
+      width,
+      height,
+    );
 
   return {
     render(ops: Op[]): Uint8Array {
-      const len = pack(ops, memory.buffer, opsBuf);
+      let len = pack(ops, memory.buffer, opsBuf);
       reduce(statePtr, opsBuf, len);
       return new Uint8Array(
         memory.buffer,

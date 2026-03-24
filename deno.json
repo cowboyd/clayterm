@@ -25,6 +25,8 @@
     "exclude": ["clay", "build"]
   },
   "lint": {
-    "exclude": ["clay", "build"]
+    "rules": { "exclude": ["prefer-const"] },
+    "exclude": ["clay", "build"],
+    "plugins": ["lint/prefer-let.ts"]
   }
 }

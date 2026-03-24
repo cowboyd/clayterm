@@ -122,8 +122,8 @@ export function validate(ops: unknown): ops is Op[] {
 
 export function assert(ops: unknown): asserts ops is Op[] {
   if (!compiled.Check(ops)) {
-    const errors = [...compiled.Errors(ops)];
-    const msg = errors
+    let errors = [...compiled.Errors(ops)];
+    let msg = errors
       .slice(0, 5)
       .map((e) => `${e.path}: ${e.message}`)
       .join("\n");

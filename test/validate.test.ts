@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "./suite.ts";
 import { createTerm, type Term } from "../term.ts";
-import { close, grow, open, rgba, text } from "../ops.ts";
+import { close, grow, open, text } from "../ops.ts";
 import { assert, validate, validated } from "../validate.ts";
 import { print } from "./print.ts";
 
@@ -88,7 +88,7 @@ describe("validated", () => {
   });
 
   it("renders valid ops normally", () => {
-    const out = print(
+    let out = print(
       decode(term.render([
         open("root", {
           layout: { width: grow(), height: grow(), direction: "ttb" },
