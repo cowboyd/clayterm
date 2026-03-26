@@ -6,13 +6,15 @@
     "fmt": "deno fmt && clang-format -i src/*.c src/*.h",
     "fmt:check": "deno fmt --check && clang-format --dry-run --Werror src/*.c src/*.h",
     "build:npm": "deno run -A tasks/build-npm.ts",
-    "build:jsr": "deno run -A tasks/build-jsr.ts"
+    "build:jsr": "deno run -A tasks/build-jsr.ts",
+    "demo": "deno run -A demo/keyboard.ts"
   },
   "imports": {
     "@std/testing": "jsr:@std/testing@1",
     "@std/expect": "jsr:@std/expect@1",
     "@sinclair/typebox": "npm:@sinclair/typebox@^0.34",
-    "dnt": "jsr:@deno/dnt@0.42.3"
+    "dnt": "jsr:@deno/dnt@0.42.3",
+    "effection": "npm:effection@^4.0.2"
   },
   "exports": {
     ".": "./mod.ts",

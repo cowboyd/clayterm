@@ -6,9 +6,12 @@
     "jsr:@effection/effection@*": "4.0.2",
     "jsr:@std/assert@^1.0.14": "1.0.18",
     "jsr:@std/assert@^1.0.17": "1.0.18",
+    "jsr:@std/async@^1.1.0": "1.1.1",
+    "jsr:@std/data-structures@^1.0.10": "1.0.10",
     "jsr:@std/expect@1": "1.0.17",
     "jsr:@std/fmt@1": "1.0.8",
     "jsr:@std/fs@1": "1.0.22",
+    "jsr:@std/fs@^1.0.22": "1.0.22",
     "jsr:@std/internal@^1.0.10": "1.0.12",
     "jsr:@std/internal@^1.0.12": "1.0.12",
     "jsr:@std/path@1": "1.1.4",
@@ -18,6 +21,7 @@
     "jsr:@ts-morph/common@0.27": "0.27.0",
     "npm:@sinclair/typebox@*": "0.34.48",
     "npm:@sinclair/typebox@0.34": "0.34.48",
+    "npm:effection@^4.0.2": "4.0.2",
     "npm:valrs@*": "0.1.0"
   },
   "jsr": {
@@ -29,7 +33,7 @@
       "dependencies": [
         "jsr:@david/code-block-writer",
         "jsr:@std/fmt",
-        "jsr:@std/fs",
+        "jsr:@std/fs@1",
         "jsr:@std/path@1",
         "jsr:@ts-morph/bootstrap"
       ]
@@ -42,6 +46,12 @@
       "dependencies": [
         "jsr:@std/internal@^1.0.12"
       ]
+    },
+    "@std/async@1.1.1": {
+      "integrity": "8a79beb3378cc229ce65ba2c746cfd03e4855ddd891d1eb6b9e32128e0d5339c"
+    },
+    "@std/data-structures@1.0.10": {
+      "integrity": "f574f86b0e07c69b9edc555fcc814b57d29258bad39fd5a34ba8a80ecf033cfe"
     },
     "@std/expect@1.0.17": {
       "integrity": "316b47dd65c33e3151344eb3267bf42efba17d1415425f07ed96185d67fc04d9",
@@ -73,7 +83,11 @@
       "integrity": "87bdc2700fa98249d48a17cd72413352d3d3680dcfbdb64947fd0982d6bbf681",
       "dependencies": [
         "jsr:@std/assert@^1.0.17",
-        "jsr:@std/internal@^1.0.12"
+        "jsr:@std/async",
+        "jsr:@std/data-structures",
+        "jsr:@std/fs@^1.0.22",
+        "jsr:@std/internal@^1.0.12",
+        "jsr:@std/path@^1.1.4"
       ]
     },
     "@ts-morph/bootstrap@0.27.0": {
@@ -85,7 +99,7 @@
     "@ts-morph/common@0.27.0": {
       "integrity": "c7b73592d78ce8479b356fd4f3d6ec3c460d77753a8680ff196effea7a939052",
       "dependencies": [
-        "jsr:@std/fs",
+        "jsr:@std/fs@1",
         "jsr:@std/path@1"
       ]
     }
@@ -93,6 +107,9 @@
   "npm": {
     "@sinclair/typebox@0.34.48": {
       "integrity": "sha512-kKJTNuK3AQOrgjjotVxMrCn1sUJwM76wMszfq1kdU4uYVJjvEWuFQ6HgvLt4Xz3fSmZlTOxJ/Ie13KnIcWQXFA=="
+    },
+    "effection@4.0.2": {
+      "integrity": "sha512-O8WMGP10nPuJDwbNGILcaCNWS+CvDYjcdsUSD79nWZ+WtUQ8h1MEV7JJwCSZCSeKx8+TdEaZ/8r6qPTR2o/o8w=="
     },
     "valrs@0.1.0": {
       "integrity": "sha512-BqVkjx3qhsRLHerblLDoqEx0OEx7ms0DB6LPv40oWkMfFKUVKrqVuklaGdrPrHyubC5hSHYfEtUiQXrCkC6xHQ=="
@@ -103,7 +120,8 @@
       "jsr:@deno/dnt@0.42.3",
       "jsr:@std/expect@1",
       "jsr:@std/testing@1",
-      "npm:@sinclair/typebox@0.34"
+      "npm:@sinclair/typebox@0.34",
+      "npm:effection@^4.0.2"
     ]
   }
 }
