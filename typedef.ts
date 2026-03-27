@@ -28,7 +28,25 @@ export type Num<T> = {
   T?: T;
 };
 
-export type TypeDef<T> = Num<T> | Struct<T>;
+export type Arr<T> = {
+  type: "array";
+  element: TypeDef<T>;
+  length: number;
+  byteLength: number;
+  byteAlign: Alignment;
+};
+
+export type TypeDef<T> = Num<T> | Struct<T> | Arr<T>;
+
+export function array<T>(element: TypeDef<T>, length: number): Arr<T[]> {
+  return {
+    type: "array",
+    element: element as TypeDef<T[]>,
+    length,
+    byteLength: element.byteLength * length,
+    byteAlign: element.byteAlign,
+  };
+}
 
 export const int32 = (): TypeDef<number> => ({
   type: "int32",

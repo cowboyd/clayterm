@@ -300,21 +300,31 @@ static uint8_t kitty_mod(int mod) {
 }
 
 static int parse_csi_u(struct InputState *st, struct InputEvent *ev) {
-  /* \x1b[ codepoint ; modifiers u   or   \x1b[ codepoint u */
+  /* CSI key:shifted:base ; mod:action ; text u */
   if (st->len < 2)
     return PARSE_NEED_MORE;
   if (st->buf[0] != '\x1b' || st->buf[1] != '[')
     return PARSE_ERR;
   if (st->len < 4)
     return PARSE_NEED_MORE;
-  if (st->buf[2] < '0' || st->buf[2] > '9')
+  if (st->buf[2] < '0' && st->buf[2] != ';')
+    return PARSE_ERR;
+  if (st->buf[2] > '9' && st->buf[2] != ';')
     return PARSE_ERR;
 
-  int cp = -1;
-  int mod = -1;
+  /* fields[param][sub]: up to 3 params, up to 3 sub-fields each */
+  int fields[3][3];
+  for (int p = 0; p < 3; p++)
+    for (int s = 0; s < 3; s++)
+      fields[p][s] = -1;
+
+  int param = 0;
+  int sub = 0;
   int cur = -1;
   int i = 2;
   int done = 0;
+  int text_start = -1;
+  int text_end = -1;
 
   while (i < st->len && !done) {
     char c = st->buf[i];
@@ -322,28 +332,26 @@ static int parse_csi_u(struct InputState *st, struct InputEvent *ev) {
       if (cur == -1)
         cur = 0;
       cur = cur * 10 + (c - '0');
-    } else if (c == ';' && cp == -1 && cur != -1) {
-      cp = cur;
+    } else if (c == ':') {
+      if (param < 3 && sub < 3)
+        fields[param][sub] = cur;
       cur = -1;
-    } else if (c == 'u' && cur != -1) {
-      if (cp == -1) {
-        cp = cur;
-        mod = 1;
-      } else {
-        mod = cur;
+      sub++;
+      if (param == 2 && text_start == -1)
+        text_start = i + 1;
+    } else if (c == ';') {
+      if (param < 3 && sub < 3)
+        fields[param][sub] = cur;
+      cur = -1;
+      param++;
+      sub = 0;
+    } else if (c == 'u') {
+      if (param < 3 && sub < 3)
+        fields[param][sub] = cur;
+      if (param == 2 && text_start != -1) {
+        text_end = i;
       }
       done = 1;
-    } else if (c == ':' && cur != -1) {
-      /* sub-field separator (event-type, alternate keys) — skip */
-      if (cp == -1) {
-        cp = cur;
-      }
-      cur = -1;
-      /* consume until next ';' or 'u' */
-      i++;
-      while (i < st->len && st->buf[i] != ';' && st->buf[i] != 'u')
-        i++;
-      continue;
     } else {
       return PARSE_ERR;
     }
@@ -353,6 +361,14 @@ static int parse_csi_u(struct InputState *st, struct InputEvent *ev) {
   if (!done)
     return PARSE_NEED_MORE;
 
+  int cp = fields[0][0];
+  int mod = fields[1][0];
+
+  if (cp == -1)
+    cp = 0;
+  if (mod == -1)
+    mod = 1;
+
   ev->type = EVENT_KEY;
   ev->mod = kitty_mod(mod);
 
@@ -361,6 +377,52 @@ static int parse_csi_u(struct InputState *st, struct InputEvent *ev) {
     ev->key = key;
   } else {
     ev->ch = (uint32_t)cp;
+  }
+
+  /* action */
+  if (fields[1][1] > 0) {
+    ev->action = (uint8_t)fields[1][1];
+  }
+
+  /* alternate keys */
+  if (fields[0][1] > 0) {
+    ev->shifted = (uint32_t)fields[0][1];
+  }
+  if (fields[0][2] > 0) {
+    ev->base = (uint32_t)fields[0][2];
+  }
+
+  /* associated text: decode codepoints from param 2 */
+  if (param >= 2 && fields[2][0] >= 0) {
+    /* find the start of param 2 by counting semicolons */
+    int off = 2;
+    int sc = 0;
+    for (int j = 2; j < i; j++) {
+      if (st->buf[j] == ';') {
+        sc++;
+        if (sc == 2) {
+          off = j + 1;
+          break;
+        }
+      }
+    }
+    /* parse colon-separated codepoints */
+    int tc = 0;
+    int val = -1;
+    for (int j = off; j < i - 1 && tc < MAX_TEXT_CODEPOINTS; j++) {
+      char c = st->buf[j];
+      if (c >= '0' && c <= '9') {
+        if (val == -1) val = 0;
+        val = val * 10 + (c - '0');
+      } else if (c == ':') {
+        if (val >= 0)
+          ev->text[tc++] = (uint32_t)val;
+        val = -1;
+      }
+    }
+    if (val >= 0 && tc < MAX_TEXT_CODEPOINTS)
+      ev->text[tc++] = (uint32_t)val;
+    ev->text_len = (uint8_t)tc;
   }
 
   shift(st, i);

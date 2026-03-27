@@ -56,10 +56,7 @@ import {
 } from "./input-native.ts";
 
 /**
- * Modifier keys held during a key or mouse event. For example, Ctrl+C will be seen as
- * ```ts
- * { type: "char"; key: "c"; ctrl: true}
- * ```
+ * Modifier keys held during a key or mouse event.
  */
 export interface KeyModifiers {
   alt?: true;
@@ -68,47 +65,44 @@ export interface KeyModifiers {
 }
 
 /**
- * A printable character (Unicode codepoint) was pressed. There may
+ * Shared key information present on all keyboard events.
  */
-export interface CharEvent extends KeyModifiers {
-  type: "char";
+export interface KeyInfo extends KeyModifiers {
   key: string;
 }
 
 /**
- * Non printable keys such as "Escape"
+ * A key was pressed. Emitted at all enhancement levels.
+ * On legacy terminals, this is the only keyboard event type.
  */
-export interface KeyEvent extends KeyModifiers {
-  type: "key";
-  key:
-    | "F1"
-    | "F2"
-    | "F3"
-    | "F4"
-    | "F5"
-    | "F6"
-    | "F7"
-    | "F8"
-    | "F9"
-    | "F10"
-    | "F11"
-    | "F12"
-    | "ArrowUp"
-    | "ArrowDown"
-    | "ArrowLeft"
-    | "ArrowRight"
-    | "Home"
-    | "End"
-    | "Insert"
-    | "Delete"
-    | "PageUp"
-    | "PageDown"
-    | "Backtab"
-    | "Backspace"
-    | "Tab"
-    | "Enter"
-    | "Escape";
+export interface KeyDown extends KeyInfo {
+  type: "keydown";
+  shifted?: string;
+  base?: string;
+  text?: string;
 }
+
+/**
+ * A key is being held down (auto-repeat). Only emitted with
+ * Kitty enhancement level 2+ (report event types).
+ */
+export interface KeyRepeat extends KeyInfo {
+  type: "keyrepeat";
+  shifted?: string;
+  base?: string;
+  text?: string;
+}
+
+/**
+ * A key was released. Only emitted with Kitty enhancement
+ * level 2+ (report event types). Does not carry text,
+ * shifted, or base fields.
+ */
+export interface KeyUp extends KeyInfo {
+  type: "keyup";
+}
+
+export type KeyEvent = KeyDown | KeyRepeat | KeyUp;
 
 /**
  * A mouse button was pressed or released
@@ -198,7 +192,6 @@ export interface ResizeEvent {
 }
 
 export type InputEvent =
-  | CharEvent
   | KeyEvent
   | MouseEvent
   | DragEvent
@@ -328,7 +321,7 @@ export async function createInput(options: InputOptions = {}): Promise<Input> {
   };
 }
 
-const KEY_NAMES = new Map<number, KeyEvent["key"]>([
+const KEY_NAMES = new Map<number, string>([
   [KEY_F1, "F1"],
   [KEY_F2, "F2"],
   [KEY_F3, "F3"],
@@ -373,31 +366,58 @@ function mods(native: NativeInputEvent): KeyModifiers {
   return m;
 }
 
+function keyName(native: NativeInputEvent): string {
+  let name = KEY_NAMES.get(native.key);
+  if (name) {
+    return name;
+  } else if (native.key === 0 && native.ch > 0) {
+    return String.fromCodePoint(native.ch);
+  } else if (native.key > 0 && native.key < 0x20) {
+    return String.fromCharCode(native.key + 0x60);
+  } else {
+    return String.fromCodePoint(native.ch || native.key);
+  }
+}
+
+function textFromNative(native: NativeInputEvent): string | undefined {
+  if (native.text.length === 0) {
+    return undefined;
+  } else {
+    return String.fromCodePoint(...native.text);
+  }
+}
+
+function mapKeyEvent(native: NativeInputEvent): KeyEvent {
+  let key = keyName(native);
+  let m = mods(native);
+  let isChar = !KEY_NAMES.has(native.key);
+  let text = textFromNative(native);
+
+  if (native.action === 3) {
+    return { type: "keyup", key, ...m };
+  }
+
+  let type: "keydown" | "keyrepeat" = native.action === 2
+    ? "keyrepeat"
+    : "keydown";
+
+  let ev: KeyDown | KeyRepeat = { type, key, ...m };
+
+  if (native.shifted > 0) ev.shifted = String.fromCodePoint(native.shifted);
+  if (native.base > 0) ev.base = String.fromCodePoint(native.base);
+  if (text) {
+    ev.text = text;
+  } else if (isChar && type === "keydown" && native.ch > 0) {
+    ev.text = String.fromCodePoint(native.ch);
+  }
+
+  return ev;
+}
+
 function mapEvent(native: NativeInputEvent): InputEvent {
   switch (native.type) {
     case EVENT_KEY: {
-      let name = KEY_NAMES.get(native.key);
-      if (name) {
-        return { type: "key", key: name, ...mods(native) };
-      } else if (native.key === 0 && native.ch > 0) {
-        return {
-          type: "char",
-          key: String.fromCodePoint(native.ch),
-          ...mods(native),
-        };
-      } else if (native.key > 0 && native.key < 0x20) {
-        return {
-          type: "char",
-          key: String.fromCharCode(native.key + 0x60),
-          ...mods(native),
-        };
-      } else {
-        return {
-          type: "char",
-          key: String.fromCodePoint(native.ch || native.key),
-          ...mods(native),
-        };
-      }
+      return mapKeyEvent(native);
     }
     case EVENT_MOUSE: {
       if (
@@ -437,11 +457,7 @@ function mapEvent(native: NativeInputEvent): InputEvent {
       return { type: "resize", width: native.w, height: native.h };
     }
     default: {
-      return {
-        type: "char",
-        key: String.fromCodePoint(native.ch || native.key),
-        ...mods(native),
-      };
+      return mapKeyEvent(native);
     }
   }
 }

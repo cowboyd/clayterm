@@ -67,6 +67,13 @@
 #define MOD_MOTION 8
 #define MOD_RELEASE 16
 
+/* ── Kitty action types ──────────────────────────────────────────── */
+
+#define ACTION_NONE    0
+#define ACTION_PRESS   1
+#define ACTION_REPEAT  2
+#define ACTION_RELEASE 3
+
 /* ── Key codes ────────────────────────────────────────────────────── */
 
 /* Function keys */
@@ -121,11 +128,19 @@
  * @field key   KEY_* constant for special keys, raw byte for control chars,
  *              or 0 when the event is a printable character (see ch).
  * @field ch    Unicode codepoint for printable characters, 0 otherwise.
- * @field x     Mouse column (0-based). Only valid for EVENT_MOUSE.
- * @field y     Mouse row (0-based). Only valid for EVENT_MOUSE.
- * @field w     Terminal width. Only valid for EVENT_RESIZE.
- * @field h     Terminal height. Only valid for EVENT_RESIZE.
+ * @field x        Mouse column (0-based). Only valid for EVENT_MOUSE.
+ * @field y        Mouse row (0-based). Only valid for EVENT_MOUSE.
+ * @field w        Terminal width. Only valid for EVENT_RESIZE.
+ * @field h        Terminal height. Only valid for EVENT_RESIZE.
+ * @field action    Kitty event type: ACTION_NONE/PRESS/REPEAT/RELEASE.
+ * @field shifted   Shifted key codepoint (Kitty alternate keys).
+ * @field base      Base layout key codepoint (Kitty alternate keys).
+ * @field text_len  Number of valid codepoints in text[] (0-8).
+ * @field text      Associated text codepoints (Kitty enhancement level 16+).
  */
+
+#define MAX_TEXT_CODEPOINTS 8
+
 struct InputEvent {
   uint8_t type;
   uint8_t mod;
@@ -135,6 +150,11 @@ struct InputEvent {
   int32_t y;
   int32_t w;
   int32_t h;
+  uint8_t action;
+  uint32_t shifted;
+  uint32_t base;
+  uint32_t text[MAX_TEXT_CODEPOINTS];
+  uint8_t text_len;
 };
 
 /**

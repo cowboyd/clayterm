@@ -20,14 +20,14 @@ describe("input", () => {
     it("parses a single character", () => {
       let result = input.scan(bytes(0x61)); // 'a'
       expect(result.events.length).toBe(1);
-      expect(result.events[0]).toMatchObject({ type: "char", key: "a" });
+      expect(result.events[0]).toMatchObject({ type: "keydown", key: "a" });
     });
 
     it("parses multiple characters", () => {
       let result = input.scan(str("hello"));
       expect(result.events.length).toBe(5);
-      expect(result.events[0]).toMatchObject({ type: "char", key: "h" });
-      expect(result.events[4]).toMatchObject({ type: "char", key: "o" });
+      expect(result.events[0]).toMatchObject({ type: "keydown", key: "h" });
+      expect(result.events[4]).toMatchObject({ type: "keydown", key: "o" });
     });
   });
 
@@ -36,7 +36,7 @@ describe("input", () => {
       let result = input.scan(bytes(0x03));
       expect(result.events.length).toBe(1);
       expect(result.events[0]).toMatchObject({
-        type: "char",
+        type: "keydown",
         key: "c",
         ctrl: true,
       });
@@ -45,13 +45,13 @@ describe("input", () => {
     it("parses Tab without ctrl modifier", () => {
       let result = input.scan(bytes(0x09));
       expect(result.events.length).toBe(1);
-      expect(result.events[0]).toMatchObject({ type: "key", key: "Tab" });
+      expect(result.events[0]).toMatchObject({ type: "keydown", key: "Tab" });
     });
 
     it("parses Enter without ctrl modifier", () => {
       let result = input.scan(bytes(0x0d));
       expect(result.events.length).toBe(1);
-      expect(result.events[0]).toMatchObject({ type: "key", key: "Enter" });
+      expect(result.events[0]).toMatchObject({ type: "keydown", key: "Enter" });
     });
   });
 
@@ -59,7 +59,7 @@ describe("input", () => {
     it("parses 0x7f as backspace", () => {
       let result = input.scan(bytes(0x7f));
       expect(result.events.length).toBe(1);
-      expect(result.events[0]).toMatchObject({ type: "key", key: "Backspace" });
+      expect(result.events[0]).toMatchObject({ type: "keydown", key: "Backspace" });
     });
   });
 
@@ -67,13 +67,13 @@ describe("input", () => {
     it("parses arrow up (CSI)", () => {
       let result = input.scan(bytes(0x1b, 0x5b, 0x41));
       expect(result.events.length).toBe(1);
-      expect(result.events[0]).toMatchObject({ type: "key", key: "ArrowUp" });
+      expect(result.events[0]).toMatchObject({ type: "keydown", key: "ArrowUp" });
     });
 
     it("parses arrow down (SS3)", () => {
       let result = input.scan(bytes(0x1b, 0x4f, 0x42));
       expect(result.events.length).toBe(1);
-      expect(result.events[0]).toMatchObject({ type: "key", key: "ArrowDown" });
+      expect(result.events[0]).toMatchObject({ type: "keydown", key: "ArrowDown" });
     });
   });
 
@@ -82,7 +82,7 @@ describe("input", () => {
       let result = input.scan(bytes(0x1b, 0x5b, 0x31, 0x3b, 0x35, 0x41));
       expect(result.events.length).toBe(1);
       expect(result.events[0]).toMatchObject({
-        type: "key",
+        type: "keydown",
         key: "ArrowUp",
         ctrl: true,
       });
@@ -92,7 +92,7 @@ describe("input", () => {
       let result = input.scan(bytes(0x1b, 0x5b, 0x31, 0x3b, 0x32, 0x41));
       expect(result.events.length).toBe(1);
       expect(result.events[0]).toMatchObject({
-        type: "key",
+        type: "keydown",
         key: "ArrowUp",
         shift: true,
       });
@@ -102,7 +102,7 @@ describe("input", () => {
       let result = input.scan(bytes(0x1b, 0x5b, 0x31, 0x3b, 0x38, 0x41));
       expect(result.events.length).toBe(1);
       expect(result.events[0]).toMatchObject({
-        type: "key",
+        type: "keydown",
         key: "ArrowUp",
         ctrl: true,
         alt: true,
@@ -115,13 +115,13 @@ describe("input", () => {
     it("parses F1 (SS3)", () => {
       let result = input.scan(bytes(0x1b, 0x4f, 0x50));
       expect(result.events.length).toBe(1);
-      expect(result.events[0]).toMatchObject({ type: "key", key: "F1" });
+      expect(result.events[0]).toMatchObject({ type: "keydown", key: "F1" });
     });
 
     it("parses F5 (CSI ~)", () => {
       let result = input.scan(str("\x1b[15~"));
       expect(result.events.length).toBe(1);
-      expect(result.events[0]).toMatchObject({ type: "key", key: "F5" });
+      expect(result.events[0]).toMatchObject({ type: "keydown", key: "F5" });
     });
   });
 
@@ -129,26 +129,26 @@ describe("input", () => {
     it("parses Home", () => {
       let result = input.scan(bytes(0x1b, 0x4f, 0x48));
       expect(result.events.length).toBe(1);
-      expect(result.events[0]).toMatchObject({ type: "key", key: "Home" });
+      expect(result.events[0]).toMatchObject({ type: "keydown", key: "Home" });
     });
 
     it("parses End", () => {
       let result = input.scan(bytes(0x1b, 0x4f, 0x46));
       expect(result.events.length).toBe(1);
-      expect(result.events[0]).toMatchObject({ type: "key", key: "End" });
+      expect(result.events[0]).toMatchObject({ type: "keydown", key: "End" });
     });
 
     it("parses Delete", () => {
       let result = input.scan(str("\x1b[3~"));
       expect(result.events.length).toBe(1);
-      expect(result.events[0]).toMatchObject({ type: "key", key: "Delete" });
+      expect(result.events[0]).toMatchObject({ type: "keydown", key: "Delete" });
     });
 
     it("parses PgDn with Ctrl", () => {
       let result = input.scan(str("\x1b[6;5~"));
       expect(result.events.length).toBe(1);
       expect(result.events[0]).toMatchObject({
-        type: "key",
+        type: "keydown",
         key: "PageDown",
         ctrl: true,
       });
@@ -264,7 +264,7 @@ describe("input", () => {
       await new Promise((r) => setTimeout(r, 30));
       let result = input.scan(new Uint8Array(0));
       expect(result.events.length).toBe(1);
-      expect(result.events[0]).toMatchObject({ type: "key", key: "Escape" });
+      expect(result.events[0]).toMatchObject({ type: "keydown", key: "Escape" });
       expect(result.pending).toBeUndefined();
     });
 
@@ -274,7 +274,7 @@ describe("input", () => {
 
       let r2 = input.scan(bytes(0x5b, 0x41));
       expect(r2.events.length).toBe(1);
-      expect(r2.events[0]).toMatchObject({ type: "key", key: "ArrowUp" });
+      expect(r2.events[0]).toMatchObject({ type: "keydown", key: "ArrowUp" });
       expect(r2.pending).toBeUndefined();
     });
 
@@ -286,7 +286,7 @@ describe("input", () => {
       // "x" arrives — ESC + x = Alt+x
       let r2 = input.scan(bytes(0x78)); // 'x'
       expect(r2.events.length).toBe(1);
-      expect(r2.events[0]).toMatchObject({ type: "char", key: "x", alt: true });
+      expect(r2.events[0]).toMatchObject({ type: "keydown", key: "x", alt: true });
       expect(r2.pending).toBeUndefined();
     });
 
@@ -298,9 +298,9 @@ describe("input", () => {
       // rest of ArrowUp + "hi"
       let r2 = input.scan(bytes(0x5b, 0x41, 0x68, 0x69));
       expect(r2.events.length).toBe(3);
-      expect(r2.events[0]).toMatchObject({ type: "key", key: "ArrowUp" });
-      expect(r2.events[1]).toMatchObject({ type: "char", key: "h" });
-      expect(r2.events[2]).toMatchObject({ type: "char", key: "i" });
+      expect(r2.events[0]).toMatchObject({ type: "keydown", key: "ArrowUp" });
+      expect(r2.events[1]).toMatchObject({ type: "keydown", key: "h" });
+      expect(r2.events[2]).toMatchObject({ type: "keydown", key: "i" });
       expect(r2.pending).toBeUndefined();
     });
   });
@@ -310,7 +310,7 @@ describe("input", () => {
       let result = input.scan(bytes(0x1b, 0x61));
       expect(result.events.length).toBe(1);
       expect(result.events[0]).toMatchObject({
-        type: "char",
+        type: "keydown",
         key: "a",
         alt: true,
       });
@@ -324,10 +324,10 @@ describe("input", () => {
         bytes(0x1b, 0x5b, 0x41, 0x1b, 0x5b, 0x42, 0x68, 0x69),
       );
       expect(result.events.length).toBe(4);
-      expect(result.events[0]).toMatchObject({ type: "key", key: "ArrowUp" });
-      expect(result.events[1]).toMatchObject({ type: "key", key: "ArrowDown" });
-      expect(result.events[2]).toMatchObject({ type: "char", key: "h" });
-      expect(result.events[3]).toMatchObject({ type: "char", key: "i" });
+      expect(result.events[0]).toMatchObject({ type: "keydown", key: "ArrowUp" });
+      expect(result.events[1]).toMatchObject({ type: "keydown", key: "ArrowDown" });
+      expect(result.events[2]).toMatchObject({ type: "keydown", key: "h" });
+      expect(result.events[3]).toMatchObject({ type: "keydown", key: "i" });
     });
   });
 
@@ -338,7 +338,7 @@ describe("input", () => {
 
       let r2 = input.scan(bytes(0x41));
       expect(r2.events.length).toBe(1);
-      expect(r2.events[0]).toMatchObject({ type: "key", key: "ArrowUp" });
+      expect(r2.events[0]).toMatchObject({ type: "keydown", key: "ArrowUp" });
     });
   });
 
@@ -347,7 +347,7 @@ describe("input", () => {
       let result = input.scan(str("\x1b[97;3u")); // a + Alt
       expect(result.events.length).toBe(1);
       expect(result.events[0]).toMatchObject({
-        type: "char",
+        type: "keydown",
         key: "a",
         alt: true,
       });
@@ -357,7 +357,7 @@ describe("input", () => {
       let result = input.scan(str("\x1b[9;3u"));
       expect(result.events.length).toBe(1);
       expect(result.events[0]).toMatchObject({
-        type: "key",
+        type: "keydown",
         key: "Tab",
         alt: true,
       });
@@ -367,7 +367,7 @@ describe("input", () => {
       let result = input.scan(str("\x1b[13;5u"));
       expect(result.events.length).toBe(1);
       expect(result.events[0]).toMatchObject({
-        type: "key",
+        type: "keydown",
         key: "Enter",
         ctrl: true,
       });
@@ -377,7 +377,7 @@ describe("input", () => {
       let result = input.scan(str("\x1b[27;2u"));
       expect(result.events.length).toBe(1);
       expect(result.events[0]).toMatchObject({
-        type: "key",
+        type: "keydown",
         key: "Escape",
         shift: true,
       });
@@ -387,7 +387,7 @@ describe("input", () => {
       let result = input.scan(str("\x1b[127u"));
       expect(result.events.length).toBe(1);
       expect(result.events[0]).toMatchObject({
-        type: "key",
+        type: "keydown",
         key: "Backspace",
       });
     });
@@ -396,7 +396,7 @@ describe("input", () => {
       let result = input.scan(str("\x1b[105;7u")); // i + Ctrl+Alt
       expect(result.events.length).toBe(1);
       expect(result.events[0]).toMatchObject({
-        type: "char",
+        type: "keydown",
         key: "i",
         ctrl: true,
         alt: true,
@@ -407,7 +407,7 @@ describe("input", () => {
       let result = input.scan(str("\x1b[57376;2u")); // F1 + Shift
       expect(result.events.length).toBe(1);
       expect(result.events[0]).toMatchObject({
-        type: "key",
+        type: "keydown",
         key: "F1",
         shift: true,
       });
@@ -417,10 +417,130 @@ describe("input", () => {
       let result = input.scan(str("\x1b[57352;5u")); // ArrowUp + Ctrl
       expect(result.events.length).toBe(1);
       expect(result.events[0]).toMatchObject({
-        type: "key",
+        type: "keydown",
         key: "ArrowUp",
         ctrl: true,
       });
+    });
+  });
+
+  describe("Kitty action types", () => {
+    it("parses press as keydown", () => {
+      let result = input.scan(str("\x1b[97;1:1u"));
+      expect(result.events.length).toBe(1);
+      expect(result.events[0]).toMatchObject({ type: "keydown", key: "a" });
+    });
+
+    it("parses repeat as keyrepeat", () => {
+      let result = input.scan(str("\x1b[97;1:2u"));
+      expect(result.events.length).toBe(1);
+      expect(result.events[0]).toMatchObject({ type: "keyrepeat", key: "a" });
+    });
+
+    it("parses release as keyup", () => {
+      let result = input.scan(str("\x1b[97;1:3u"));
+      expect(result.events.length).toBe(1);
+      expect(result.events[0]).toMatchObject({ type: "keyup", key: "a" });
+    });
+
+    it("parses F1 press with shift", () => {
+      let result = input.scan(str("\x1b[57376;2:1u"));
+      expect(result.events.length).toBe(1);
+      expect(result.events[0]).toMatchObject({
+        type: "keydown",
+        key: "F1",
+        shift: true,
+      });
+    });
+  });
+
+  describe("Kitty alternate keys", () => {
+    it("parses shifted key", () => {
+      let result = input.scan(str("\x1b[97:65;6u"));
+      expect(result.events.length).toBe(1);
+      expect(result.events[0]).toMatchObject({
+        type: "keydown",
+        key: "a",
+        ctrl: true,
+        shift: true,
+        shifted: "A",
+      });
+    });
+
+    it("parses shifted and base keys", () => {
+      let result = input.scan(str("\x1b[97:65:97;3:1u"));
+      expect(result.events.length).toBe(1);
+      expect(result.events[0]).toMatchObject({
+        type: "keydown",
+        key: "a",
+        alt: true,
+        shifted: "A",
+        base: "a",
+      });
+    });
+
+    it("parses empty shifted with base key", () => {
+      let result = input.scan(str("\x1b[1057::99;5u"));
+      expect(result.events.length).toBe(1);
+      expect(result.events[0]).toMatchObject({
+        type: "keydown",
+        key: "\u0421",
+        ctrl: true,
+        base: "c",
+      });
+    });
+  });
+
+  describe("Kitty associated text", () => {
+    it("parses single codepoint text", () => {
+      let result = input.scan(str("\x1b[97;;97u"));
+      expect(result.events.length).toBe(1);
+      expect(result.events[0]).toMatchObject({
+        type: "keydown",
+        key: "a",
+        text: "a",
+      });
+    });
+
+    it("parses text with shift modifier", () => {
+      let result = input.scan(str("\x1b[97;2;65u"));
+      expect(result.events.length).toBe(1);
+      expect(result.events[0]).toMatchObject({
+        type: "keydown",
+        key: "a",
+        shift: true,
+        text: "A",
+      });
+    });
+
+    it("parses IME text event", () => {
+      let result = input.scan(str("\x1b[0;;228u"));
+      expect(result.events.length).toBe(1);
+      expect(result.events[0]).toMatchObject({
+        type: "keydown",
+        key: "\0",
+        text: "\u00e4",
+      });
+    });
+
+    it("parses multi-codepoint text", () => {
+      let result = input.scan(str("\x1b[0;;4354:4449:4523u"));
+      expect(result.events.length).toBe(1);
+      expect(result.events[0]).toMatchObject({
+        type: "keydown",
+        key: "\0",
+        text: "\u1102\u1161\u11AB",
+      });
+    });
+
+    it("keyup has no text", () => {
+      let result = input.scan(str("\x1b[97;1:3u"));
+      expect(result.events.length).toBe(1);
+      let ev = result.events[0];
+      expect(ev).toMatchObject({ type: "keyup", key: "a" });
+      expect("text" in ev).toBe(false);
+      expect("shifted" in ev).toBe(false);
+      expect("base" in ev).toBe(false);
     });
   });
 
@@ -428,20 +548,20 @@ describe("input", () => {
     it("parses 2-byte UTF-8 (é)", () => {
       let result = input.scan(bytes(0xc3, 0xa9));
       expect(result.events.length).toBe(1);
-      expect(result.events[0]).toMatchObject({ type: "char", key: "\u00e9" });
+      expect(result.events[0]).toMatchObject({ type: "keydown", key: "\u00e9" });
     });
 
     it("parses 3-byte UTF-8 (中)", () => {
       let result = input.scan(bytes(0xe4, 0xb8, 0xad));
       expect(result.events.length).toBe(1);
-      expect(result.events[0]).toMatchObject({ type: "char", key: "\u4e2d" });
+      expect(result.events[0]).toMatchObject({ type: "keydown", key: "\u4e2d" });
     });
 
     it("parses 4-byte UTF-8 (emoji 🎉)", () => {
       let result = input.scan(bytes(0xf0, 0x9f, 0x8e, 0x89));
       expect(result.events.length).toBe(1);
       expect(result.events[0]).toMatchObject({
-        type: "char",
+        type: "keydown",
         key: "\u{1f389}",
       });
     });

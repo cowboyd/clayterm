@@ -43,7 +43,9 @@ export const KEY_TAB = 0x09;
 export const KEY_BACKSPACE = 0x7F;
 export const KEY_SPACE = 0x20;
 
-import { int32, offsets, struct, uint8, uint16, uint32 } from "./typedef.ts";
+import { array, int32, offsets, struct, uint8, uint16, uint32 } from "./typedef.ts";
+
+const MAX_TEXT_CODEPOINTS = 8;
 
 const InputEventLayout = struct({
   type: uint8(),
@@ -54,6 +56,11 @@ const InputEventLayout = struct({
   y: int32(),
   w: int32(),
   h: int32(),
+  action: uint8(),
+  shifted: uint32(),
+  base: uint32(),
+  text: array(uint32(), MAX_TEXT_CODEPOINTS),
+  text_len: uint8(),
 });
 
 const {
@@ -65,6 +72,11 @@ const {
   y: OFFSET_Y,
   w: OFFSET_W,
   h: OFFSET_H,
+  action: OFFSET_ACTION,
+  text_len: OFFSET_TEXT_LEN,
+  shifted: OFFSET_SHIFTED,
+  base: OFFSET_BASE,
+  text: OFFSET_TEXT,
 } = offsets(InputEventLayout);
 
 export interface NativeInputEvent {
@@ -76,9 +88,18 @@ export interface NativeInputEvent {
   y: number;
   w: number;
   h: number;
+  action: number;
+  shifted: number;
+  base: number;
+  text: number[];
 }
 
 export function readEvent(view: DataView, ptr: number): NativeInputEvent {
+  let len = view.getUint8(ptr + OFFSET_TEXT_LEN);
+  let text: number[] = [];
+  for (let i = 0; i < len && i < MAX_TEXT_CODEPOINTS; i++) {
+    text.push(view.getUint32(ptr + OFFSET_TEXT + i * 4, true));
+  }
   return {
     type: view.getUint8(ptr + OFFSET_TYPE),
     mod: view.getUint8(ptr + OFFSET_MOD),
@@ -88,6 +109,10 @@ export function readEvent(view: DataView, ptr: number): NativeInputEvent {
     y: view.getInt32(ptr + OFFSET_Y, true),
     w: view.getInt32(ptr + OFFSET_W, true),
     h: view.getInt32(ptr + OFFSET_H, true),
+    action: view.getUint8(ptr + OFFSET_ACTION),
+    shifted: view.getUint32(ptr + OFFSET_SHIFTED, true),
+    base: view.getUint32(ptr + OFFSET_BASE, true),
+    text,
   };
 }
 

@@ -5,6 +5,7 @@ import {
   fixed,
   grow,
   type InputEvent,
+  type KeyEvent,
   type Op,
   open,
   rgba,
@@ -29,14 +30,17 @@ interface KeyDef {
   match: (event: InputEvent) => boolean;
 }
 
+function isKeyEvent(e: InputEvent): e is KeyEvent {
+  return e.type === "keydown" || e.type === "keyrepeat" || e.type === "keyup";
+}
+
 function is(char: string): (event: InputEvent) => boolean {
   return (e) =>
-    (e.type === "char" || e.type === "key") &&
-    e.key.toUpperCase() === char.toUpperCase();
+    isKeyEvent(e) && e.key.toUpperCase() === char.toUpperCase();
 }
 
 function mod(name: "ctrl" | "alt" | "shift"): (event: InputEvent) => boolean {
-  return (e) => (e.type === "char" || e.type === "key") && e[name] === true;
+  return (e) => isKeyEvent(e) && e[name] === true;
 }
 
 function never(): boolean {
@@ -497,7 +501,7 @@ await main(function* () {
   Deno.stdout.writeSync(term.render(keyboard(context)));
 
   for (let event of yield* each(input)) {    
-    if (event.type === "char" && event.ctrl && event.key === "c") {
+    if (event.type === "keydown" && event.ctrl && event.key === "c") {
       break;
     }
        
@@ -538,13 +542,13 @@ function* inputmode(context: AppContext): Mode {
   let event = context.event ? context.event : yield context;
   while (true) {
     context = { ...context, event };
-    if (event.type === "char" && event.key === "x" && event.ctrl) {
+    if (event.type === "keydown" && event.key === "x" && event.ctrl) {
       let next = yield context;
       context = {
         ...context,
         event: next,
       };
-      if (next.type === "char" && next.key === "x" && next.ctrl) {
+      if (next.type === "keydown" && next.key === "x" && next.ctrl) {
         return configmode({
           ...context,
           event: null,
@@ -559,10 +563,10 @@ function* configmode(context: AppContext): Mode {
   context = { ...context, mode: "config" };
   let event = yield context;
   while (true) {
-    if (event.type === "key" && event.key === "Escape") {
+    if (event.type === "keydown" && event.key === "Escape") {
       return inputmode({...context, event: null });
     }
-    if (event.type === "char") {
+    if (event.type === "keydown") {
       switch (event.key) {
         case "1": {
           context = {...context, ["Disambiguate escape codes"]: !context["Disambiguate escape codes"]};
