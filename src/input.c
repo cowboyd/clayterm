@@ -280,6 +280,70 @@ static uint16_t kitty_key(int cp) {
     return KEY_F11;
   case 57387:
     return KEY_F12;
+  case 57399:
+    return KEY_NUMPAD_0;
+  case 57400:
+    return KEY_NUMPAD_1;
+  case 57401:
+    return KEY_NUMPAD_2;
+  case 57402:
+    return KEY_NUMPAD_3;
+  case 57403:
+    return KEY_NUMPAD_4;
+  case 57404:
+    return KEY_NUMPAD_5;
+  case 57405:
+    return KEY_NUMPAD_6;
+  case 57406:
+    return KEY_NUMPAD_7;
+  case 57407:
+    return KEY_NUMPAD_8;
+  case 57408:
+    return KEY_NUMPAD_9;
+  case 57409:
+    return KEY_NUMPAD_DECIMAL;
+  case 57410:
+    return KEY_NUMPAD_DIVIDE;
+  case 57411:
+    return KEY_NUMPAD_MULTIPLY;
+  case 57412:
+    return KEY_NUMPAD_SUBTRACT;
+  case 57413:
+    return KEY_NUMPAD_ADD;
+  case 57414:
+    return KEY_NUMPAD_ENTER;
+  case 57415:
+    return KEY_NUMPAD_EQUAL;
+  case 57441:
+    return KEY_SHIFT_LEFT;
+  case 57442:
+    return KEY_CONTROL_LEFT;
+  case 57443:
+    return KEY_ALT_LEFT;
+  case 57444:
+    return KEY_SUPER_LEFT;
+  case 57445:
+    return KEY_HYPER_LEFT;
+  case 57446:
+    return KEY_META_LEFT;
+  case 57447:
+    return KEY_SHIFT_RIGHT;
+  case 57448:
+    return KEY_CONTROL_RIGHT;
+  case 57449:
+    return KEY_ALT_RIGHT;
+  case 57450:
+    return KEY_SUPER_RIGHT;
+  case 57451:
+    return KEY_HYPER_RIGHT;
+  case 57452:
+    return KEY_META_RIGHT;
+  case 57358:
+    return KEY_CAPS_LOCK;
+  case 57359:
+    return KEY_NUM_LOCK;
+  case 57360:
+    return KEY_SCROLL_LOCK;
   default:
     return 0;
   }
@@ -424,6 +488,116 @@ static int parse_csi_u(struct InputState *st, struct InputEvent *ev) {
       ev->text[tc++] = (uint32_t)val;
     ev->text_len = (uint8_t)tc;
   }
+
+  shift(st, i);
+  return PARSE_OK;
+}
+
+static uint16_t csi_legacy_key(char term, int number) {
+  switch (term) {
+  case 'A': return KEY_ARROW_UP;
+  case 'B': return KEY_ARROW_DOWN;
+  case 'C': return KEY_ARROW_RIGHT;
+  case 'D': return KEY_ARROW_LEFT;
+  case 'H': return KEY_HOME;
+  case 'F': return KEY_END;
+  case 'P': return KEY_F1;
+  case 'Q': return KEY_F2;
+  case 'S': return KEY_F4;
+  case '~':
+    switch (number) {
+    case 2: return KEY_INSERT;
+    case 3: return KEY_DELETE;
+    case 5: return KEY_PGUP;
+    case 6: return KEY_PGDN;
+    case 7: return KEY_HOME;
+    case 8: return KEY_END;
+    case 11: return KEY_F1;
+    case 12: return KEY_F2;
+    case 13: return KEY_F3;
+    case 14: return KEY_F4;
+    case 15: return KEY_F5;
+    case 17: return KEY_F6;
+    case 18: return KEY_F7;
+    case 19: return KEY_F8;
+    case 20: return KEY_F9;
+    case 21: return KEY_F10;
+    case 23: return KEY_F11;
+    case 24: return KEY_F12;
+    default: return 0;
+    }
+  default: return 0;
+  }
+}
+
+/* Parse Kitty-enhanced legacy CSI sequences (non-u terminators).
+ * Format: CSI [number] [; mod[:action]] terminator
+ * Handles A-D, F, H, P, Q, S, ~ terminators with optional :action */
+static int parse_csi_legacy(struct InputState *st, struct InputEvent *ev) {
+  if (st->len < 2)
+    return PARSE_NEED_MORE;
+  if (st->buf[0] != '\x1b' || st->buf[1] != '[')
+    return PARSE_ERR;
+  if (st->len < 3)
+    return PARSE_NEED_MORE;
+
+  int number = -1;
+  int mod = -1;
+  int action = -1;
+  int param = 0;
+  int sub = 0;
+  int i = 2;
+  int cur = -1;
+  char term = 0;
+
+  while (i < st->len) {
+    char c = st->buf[i];
+    if (c >= '0' && c <= '9') {
+      if (cur == -1)
+        cur = 0;
+      cur = cur * 10 + (c - '0');
+    } else if (c == ';') {
+      if (param == 0)
+        number = cur;
+      else if (param == 1 && sub == 0)
+        mod = cur;
+      cur = -1;
+      param++;
+      sub = 0;
+    } else if (c == ':') {
+      if (param == 1 && sub == 0)
+        mod = cur;
+      cur = -1;
+      sub++;
+    } else if ((c >= 'A' && c <= 'D') || c == 'F' || c == 'H' ||
+               c == 'P' || c == 'Q' || c == 'S' || c == '~') {
+      if (param == 0)
+        number = cur;
+      else if (param == 1 && sub == 0)
+        mod = cur;
+      else if (param == 1 && sub > 0)
+        action = cur;
+      term = c;
+      i++;
+      break;
+    } else {
+      return PARSE_ERR;
+    }
+    i++;
+  }
+
+  if (term == 0)
+    return PARSE_NEED_MORE;
+
+  uint16_t key = csi_legacy_key(term, number > 0 ? number : 0);
+  if (key == 0)
+    return PARSE_ERR;
+
+  ev->type = EVENT_KEY;
+  ev->key = key;
+  ev->mod = kitty_mod(mod > 0 ? mod : 1);
+  if (action > 0)
+    ev->action = (uint8_t)action;
 
   shift(st, i);
   return PARSE_OK;
@@ -758,6 +932,22 @@ int input_scan(struct InputState *st, const char *buf, int len, double now) {
         struct InputEvent kev;
         memset(&kev, 0, sizeof(kev));
         int rv = parse_csi_u(st, &kev);
+        if (rv == PARSE_OK) {
+          struct InputEvent *ev = emit(st);
+          *ev = kev;
+          st->esc_time = 0;
+          continue;
+        }
+        if (rv == PARSE_NEED_MORE) {
+          return accepted;
+        }
+      }
+
+      /* try Kitty-enhanced legacy CSI (arrows, fn keys, etc.) */
+      {
+        struct InputEvent kev;
+        memset(&kev, 0, sizeof(kev));
+        int rv = parse_csi_legacy(st, &kev);
         if (rv == PARSE_OK) {
           struct InputEvent *ev = emit(st);
           *ev = kev;

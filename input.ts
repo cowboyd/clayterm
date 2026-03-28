@@ -35,6 +35,38 @@ import {
   KEY_F9,
   KEY_HOME,
   KEY_INSERT,
+  KEY_NUMPAD_0,
+  KEY_NUMPAD_1,
+  KEY_NUMPAD_2,
+  KEY_NUMPAD_3,
+  KEY_NUMPAD_4,
+  KEY_NUMPAD_5,
+  KEY_NUMPAD_6,
+  KEY_NUMPAD_7,
+  KEY_NUMPAD_8,
+  KEY_NUMPAD_9,
+  KEY_NUMPAD_ADD,
+  KEY_NUMPAD_DECIMAL,
+  KEY_NUMPAD_DIVIDE,
+  KEY_NUMPAD_ENTER,
+  KEY_NUMPAD_EQUAL,
+  KEY_NUMPAD_MULTIPLY,
+  KEY_NUMPAD_SUBTRACT,
+  KEY_META_LEFT,
+  KEY_META_RIGHT,
+  KEY_NUM_LOCK,
+  KEY_SCROLL_LOCK,
+  KEY_SHIFT_LEFT,
+  KEY_SHIFT_RIGHT,
+  KEY_CONTROL_LEFT,
+  KEY_CONTROL_RIGHT,
+  KEY_ALT_LEFT,
+  KEY_ALT_RIGHT,
+  KEY_SUPER_LEFT,
+  KEY_SUPER_RIGHT,
+  KEY_HYPER_LEFT,
+  KEY_HYPER_RIGHT,
+  KEY_CAPS_LOCK,
   KEY_MOUSE_LEFT,
   KEY_MOUSE_MIDDLE,
   KEY_MOUSE_RELEASE,
@@ -65,10 +97,38 @@ export interface KeyModifiers {
 }
 
 /**
+ * Physical key identity on a US PC-101 layout.
+ */
+export type KeyCode =
+  | "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i"
+  | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r"
+  | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"
+  | "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+  | "`" | "-" | "=" | "[" | "]" | "\\" | ";" | "'" | "," | "." | "/" | " "
+  | "F1" | "F2" | "F3" | "F4" | "F5" | "F6"
+  | "F7" | "F8" | "F9" | "F10" | "F11" | "F12"
+  | "ArrowUp" | "ArrowDown" | "ArrowLeft" | "ArrowRight"
+  | "Home" | "End" | "Insert" | "Delete"
+  | "PageUp" | "PageDown" | "Backtab"
+  | "Backspace" | "Tab" | "Enter" | "Escape"
+  | "Numpad0" | "Numpad1" | "Numpad2" | "Numpad3" | "Numpad4"
+  | "Numpad5" | "Numpad6" | "Numpad7" | "Numpad8" | "Numpad9"
+  | "NumpadDecimal" | "NumpadDivide" | "NumpadMultiply"
+  | "NumpadSubtract" | "NumpadAdd" | "NumpadEnter" | "NumpadEqual"
+  | "ShiftLeft" | "ShiftRight"
+  | "ControlLeft" | "ControlRight"
+  | "AltLeft" | "AltRight"
+  | "SuperLeft" | "SuperRight"
+  | "HyperLeft" | "HyperRight"
+  | "MetaLeft" | "MetaRight"
+  | "CapsLock" | "NumLock" | "ScrollLock";
+
+/**
  * Shared key information present on all keyboard events.
  */
 export interface KeyInfo extends KeyModifiers {
   key: string;
+  code: KeyCode;
 }
 
 /**
@@ -78,7 +138,6 @@ export interface KeyInfo extends KeyModifiers {
 export interface KeyDown extends KeyInfo {
   type: "keydown";
   shifted?: string;
-  base?: string;
   text?: string;
 }
 
@@ -89,7 +148,6 @@ export interface KeyDown extends KeyInfo {
 export interface KeyRepeat extends KeyInfo {
   type: "keyrepeat";
   shifted?: string;
-  base?: string;
   text?: string;
 }
 
@@ -349,6 +407,38 @@ const KEY_NAMES = new Map<number, string>([
   [KEY_TAB, "Tab"],
   [KEY_ENTER, "Enter"],
   [KEY_ESC, "Escape"],
+  [KEY_NUMPAD_0, "Numpad0"],
+  [KEY_NUMPAD_1, "Numpad1"],
+  [KEY_NUMPAD_2, "Numpad2"],
+  [KEY_NUMPAD_3, "Numpad3"],
+  [KEY_NUMPAD_4, "Numpad4"],
+  [KEY_NUMPAD_5, "Numpad5"],
+  [KEY_NUMPAD_6, "Numpad6"],
+  [KEY_NUMPAD_7, "Numpad7"],
+  [KEY_NUMPAD_8, "Numpad8"],
+  [KEY_NUMPAD_9, "Numpad9"],
+  [KEY_NUMPAD_DECIMAL, "NumpadDecimal"],
+  [KEY_NUMPAD_DIVIDE, "NumpadDivide"],
+  [KEY_NUMPAD_MULTIPLY, "NumpadMultiply"],
+  [KEY_NUMPAD_SUBTRACT, "NumpadSubtract"],
+  [KEY_NUMPAD_ADD, "NumpadAdd"],
+  [KEY_NUMPAD_ENTER, "NumpadEnter"],
+  [KEY_NUMPAD_EQUAL, "NumpadEqual"],
+  [KEY_SHIFT_LEFT, "ShiftLeft"],
+  [KEY_SHIFT_RIGHT, "ShiftRight"],
+  [KEY_CONTROL_LEFT, "ControlLeft"],
+  [KEY_CONTROL_RIGHT, "ControlRight"],
+  [KEY_ALT_LEFT, "AltLeft"],
+  [KEY_ALT_RIGHT, "AltRight"],
+  [KEY_SUPER_LEFT, "SuperLeft"],
+  [KEY_SUPER_RIGHT, "SuperRight"],
+  [KEY_HYPER_LEFT, "HyperLeft"],
+  [KEY_HYPER_RIGHT, "HyperRight"],
+  [KEY_META_LEFT, "MetaLeft"],
+  [KEY_META_RIGHT, "MetaRight"],
+  [KEY_CAPS_LOCK, "CapsLock"],
+  [KEY_NUM_LOCK, "NumLock"],
+  [KEY_SCROLL_LOCK, "ScrollLock"],
 ]);
 
 const BUTTON_NAMES = new Map<number, MouseEvent["button"]>([
@@ -389,22 +479,24 @@ function textFromNative(native: NativeInputEvent): string | undefined {
 
 function mapKeyEvent(native: NativeInputEvent): KeyEvent {
   let key = keyName(native);
+  let code = (native.base > 0
+    ? String.fromCodePoint(native.base)
+    : key) as KeyCode;
   let m = mods(native);
   let isChar = !KEY_NAMES.has(native.key);
   let text = textFromNative(native);
 
   if (native.action === 3) {
-    return { type: "keyup", key, ...m };
+    return { type: "keyup", key, code, ...m };
   }
 
   let type: "keydown" | "keyrepeat" = native.action === 2
     ? "keyrepeat"
     : "keydown";
 
-  let ev: KeyDown | KeyRepeat = { type, key, ...m };
+  let ev: KeyDown | KeyRepeat = { type, key, code, ...m };
 
   if (native.shifted > 0) ev.shifted = String.fromCodePoint(native.shifted);
-  if (native.base > 0) ev.base = String.fromCodePoint(native.base);
   if (text) {
     ev.text = text;
   } else if (isChar && type === "keydown" && native.ch > 0) {

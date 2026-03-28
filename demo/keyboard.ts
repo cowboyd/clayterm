@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-fallthrough
 import { each, ensure, main, until } from "effection";
 import {
   close,
@@ -34,18 +35,11 @@ function isKeyEvent(e: InputEvent): e is KeyEvent {
   return e.type === "keydown" || e.type === "keyrepeat" || e.type === "keyup";
 }
 
-function is(char: string): (event: InputEvent) => boolean {
+function is(...codes: string[]): (event: InputEvent) => boolean {
   return (e) =>
-    isKeyEvent(e) && e.key.toUpperCase() === char.toUpperCase();
+    isKeyEvent(e) && e.type === "keydown" && codes.some((c) => e.code.toUpperCase() === c.toUpperCase());
 }
 
-function mod(name: "ctrl" | "alt" | "shift"): (event: InputEvent) => boolean {
-  return (e) => isKeyEvent(e) && e[name] === true;
-}
-
-function never(): boolean {
-  return false;
-}
 
 function key(ops: Op[], k: KeyDef, ctx: AppContext): void {
   let bg = ctx.event && k.match(ctx.event) ? active : inactive;
@@ -139,7 +133,7 @@ function mainKeys(ops: Op[], ctx: AppContext): void {
   ], ctx);
 
   row(ops, [
-    { label: "Caps", width: 9, match: never },
+    { label: "Caps", width: 9, match: is("CapsLock") },
     { label: "A", match: is("a") },
     { label: "S", match: is("s") },
     { label: "D", match: is("d") },
@@ -155,7 +149,7 @@ function mainKeys(ops: Op[], ctx: AppContext): void {
   ], ctx);
 
   row(ops, [
-    { label: "Shift", width: 11, match: mod("shift") },
+    { label: "Shift", width: 11, match: is("ShiftLeft") },
     { label: "Z", match: is("z") },
     { label: "X", match: is("x") },
     { label: "C", match: is("c") },
@@ -166,18 +160,18 @@ function mainKeys(ops: Op[], ctx: AppContext): void {
     { label: ",", match: is(",") },
     { label: ".", match: is(".") },
     { label: "/", match: is("/") },
-    { label: "Shift", width: 13, match: mod("shift") },
+    { label: "Shift", width: 13, match: is("ShiftRight") },
   ], ctx);
 
   row(ops, [
-    { label: "Ctrl", width: 7, match: mod("ctrl") },
-    { label: "Win", width: 6, match: never },
-    { label: "Alt", width: 6, match: mod("alt") },
+    { label: "Ctrl", width: 7, match: is("ControlLeft") },
+    { label: "Win", width: 6, match: is("SuperLeft") },
+    { label: "Alt", width: 6, match: is("AltLeft") },
     { label: "", width: 33, match: is(" ") },
-    { label: "Alt", width: 6, match: mod("alt") },
-    { label: "Win", width: 6, match: never },
-    { label: "Menu", width: 6, match: never },
-    { label: "Ctrl", width: 7, match: mod("ctrl") },
+    { label: "Alt", width: 6, match: is("AltRight") },
+    { label: "Win", width: 6, match: is("SuperRight") },
+    { label: "Menu", width: 6, match: is() },
+    { label: "Ctrl", width: 7, match: is("ControlRight") },
   ], ctx);
 
   ops.push(close());
@@ -232,10 +226,10 @@ function numpad(ops: Op[], ctx: AppContext): void {
   );
 
   row(ops, [
-    { label: "Num", width: 6, match: never },
-    { label: "/", width: 6, match: never },
-    { label: "*", width: 6, match: never },
-    { label: "-", width: 6, match: never },
+    { label: "Num", width: 6, match: is("NumLock") },
+    { label: "/", width: 6, match: is("NumpadDivide") },
+    { label: "*", width: 6, match: is("NumpadMultiply") },
+    { label: "-", width: 6, match: is("NumpadSubtract") },
   ], ctx);
 
   // rows 2-3 grouped horizontally so + spans both
@@ -248,14 +242,14 @@ function numpad(ops: Op[], ctx: AppContext): void {
     open("box", { layout: { direction: "ttb", gap: GAP } }),
   );
   row(ops, [
-    { label: "7", width: 6, match: never },
-    { label: "8", width: 6, match: never },
-    { label: "9", width: 6, match: never },
+    { label: "7", width: 6, match: is("Numpad7") },
+    { label: "8", width: 6, match: is("Numpad8") },
+    { label: "9", width: 6, match: is("Numpad9") },
   ], ctx);
   row(ops, [
-    { label: "4", width: 6, match: never },
-    { label: "5", width: 6, match: never },
-    { label: "6", width: 6, match: never },
+    { label: "4", width: 6, match: is("Numpad4") },
+    { label: "5", width: 6, match: is("Numpad5") },
+    { label: "6", width: 6, match: is("Numpad6") },
   ], ctx);
   ops.push(close());
 
@@ -287,13 +281,13 @@ function numpad(ops: Op[], ctx: AppContext): void {
     open("box", { layout: { direction: "ttb", gap: GAP } }),
   );
   row(ops, [
-    { label: "1", width: 6, match: never },
-    { label: "2", width: 6, match: never },
-    { label: "3", width: 6, match: never },
+    { label: "1", width: 6, match: is("Numpad1") },
+    { label: "2", width: 6, match: is("Numpad2") },
+    { label: "3", width: 6, match: is("Numpad3") },
   ], ctx);
   row(ops, [
-    { label: "0", width: 13, match: never },
-    { label: ".", width: 6, match: never },
+    { label: "0", width: 13, match: is("Numpad0") },
+    { label: ".", width: 6, match: is("NumpadDecimal") },
   ], ctx);
   ops.push(close());
 
@@ -357,7 +351,7 @@ function flagPanel(ops: Op[], ctx: AppContext): void {
 
   ops.push(
     open("box", { layout: { height: fixed(1) } }),
-    text("Keyboard Protocol", { color: highlight }),
+    text("Keyboard Protocol Level", { color: highlight }),
     close(),
   );
 
@@ -401,7 +395,7 @@ function keyboard(ctx: AppContext): Op[] {
   let badgeLabel = ctx.mode === "input" ? "input" : "config";
   let badgeHint = ctx.mode === "input"
     ? "Ctrl+X Ctrl+X to enter config"
-    : "Set flags with keys [1-5], Escape to exit";
+    : "Set flags with keys [1-5], Enter to save";
   ops.push(
     open("box", { layout: { direction: "ltr", height: fixed(1), padding: { bottom: 1 } } }),
     open("box", { layout: { padding: { left: 1, right: 1 } }, bg: rgba(60, 60, 60) }),
@@ -474,7 +468,7 @@ function ttyFlags(ctx: AppContext): Uint8Array {
   if (ctx["Report alternate keys"]) bits |= 4;
   if (ctx["Report all keys as escapes"]) bits |= 8;
   if (ctx["Report associated text"]) bits |= 16;
-  return encoder.encode(`\x1b[=${bits};3u`);
+  return encoder.encode(`\x1b[<u\x1b[>${bits}u`);
 }
 
 await main(function* () {
@@ -489,9 +483,9 @@ await main(function* () {
 
   let term = yield* until(createTerm({ width: columns, height: rows }));
 
-  esc("\x1b[?1049h\x1b[?25l");
+  esc("\x1b[?1049h\x1b[?25l\x1b[>3u");
   yield* ensure(() => {
-    esc("\x1b[?25h\x1b[?1049l");
+    esc("\x1b[<u\x1b[?25h\x1b[?1049l");
   });
 
   let modality = recognizer();
@@ -518,8 +512,8 @@ await main(function* () {
 function* recognizer(): Iterator<AppContext, never, InputEvent> {
   let current: AppContext = {
     mode: "input",
-    "Disambiguate escape codes": false,
-    "Report event types": false,
+    "Disambiguate escape codes": true,
+    "Report event types": true,
     "Report alternate keys": false,
     "Report all keys as escapes": false,
     "Report associated text": false,
@@ -544,11 +538,12 @@ function* inputmode(context: AppContext): Mode {
     context = { ...context, event };
     if (event.type === "keydown" && event.key === "x" && event.ctrl) {
       let next = yield context;
-      context = {
-        ...context,
-        event: next,
-      };
-      if (next.type === "keydown" && next.key === "x" && next.ctrl) {
+      while (next.type !== "keydown") {
+        context = { ...context, event: next };
+        next = yield context;
+      }
+      context = { ...context, event: next };
+      if (next.key === "x" && next.ctrl) {
         return configmode({
           ...context,
           event: null,
@@ -563,31 +558,30 @@ function* configmode(context: AppContext): Mode {
   context = { ...context, mode: "config" };
   let event = yield context;
   while (true) {
-    if (event.type === "keydown" && event.key === "Escape") {
+    if (event.type === "keydown" && event.key === "Enter") {
       return inputmode({...context, event: null });
     }
-    if (event.type === "keydown") {
+    if (event.type === "keydown" && "012345".indexOf(event.key) >= 0) {
+      context = { ...context };
+      context["Report associated text"] = false;
+      context["Report all keys as escapes"] = false;
+      context["Report alternate keys"] = false;
+      context["Report event types"] = false;
+      context["Disambiguate escape codes"] = false;                        
       switch (event.key) {
-        case "1": {
-          context = {...context, ["Disambiguate escape codes"]: !context["Disambiguate escape codes"]};
+        case "5":
+          context["Report associated text"] = true;
+        case "4":
+          context["Report all keys as escapes"] = true;
+        case "3":
+          context["Report alternate keys"] = true;
+        case "2":
+          context["Report event types"] = true;
+        case "1":
+          context["Disambiguate escape codes"] = true;
           break;
-        }
-        case "2": {
-          context = {...context, ["Report event types"]: !context["Report event types"]};
+        case "0":
           break;
-        }
-        case "3": {
-          context = {...context, ["Report alternate keys"]: !context["Report alternate keys"]};
-          break;
-        }
-        case "4": {
-          context = {...context, ["Report all keys as escapes"]: !context["Report all keys as escapes"]};          
-          break;
-        }
-        case "5": {
-          context = {...context, ["Report associated text"]: !context["Report associated text"]};
-          break;
-        }
       }
     }
     event = yield context;

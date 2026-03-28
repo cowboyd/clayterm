@@ -473,20 +473,20 @@ describe("input", () => {
       expect(result.events[0]).toMatchObject({
         type: "keydown",
         key: "a",
+        code: "a",
         alt: true,
         shifted: "A",
-        base: "a",
       });
     });
 
-    it("parses empty shifted with base key", () => {
+    it("parses empty shifted with base key as code", () => {
       let result = input.scan(str("\x1b[1057::99;5u"));
       expect(result.events.length).toBe(1);
       expect(result.events[0]).toMatchObject({
         type: "keydown",
         key: "\u0421",
+        code: "c",
         ctrl: true,
-        base: "c",
       });
     });
   });
@@ -541,6 +541,69 @@ describe("input", () => {
       expect("text" in ev).toBe(false);
       expect("shifted" in ev).toBe(false);
       expect("base" in ev).toBe(false);
+    });
+  });
+
+  describe("Kitty legacy CSI sequences", () => {
+    it("parses arrow up with action", () => {
+      let result = input.scan(str("\x1b[1;1:1A"));
+      expect(result.events.length).toBe(1);
+      expect(result.events[0]).toMatchObject({
+        type: "keydown",
+        key: "ArrowUp",
+        code: "ArrowUp",
+      });
+    });
+
+    it("parses arrow up release", () => {
+      let result = input.scan(str("\x1b[1;1:3A"));
+      expect(result.events.length).toBe(1);
+      expect(result.events[0]).toMatchObject({
+        type: "keyup",
+        key: "ArrowUp",
+        code: "ArrowUp",
+      });
+    });
+
+    it("parses arrow with shift modifier", () => {
+      let result = input.scan(str("\x1b[1;2:1D"));
+      expect(result.events.length).toBe(1);
+      expect(result.events[0]).toMatchObject({
+        type: "keydown",
+        key: "ArrowLeft",
+        code: "ArrowLeft",
+        shift: true,
+      });
+    });
+
+    it("parses plain arrow without action", () => {
+      let result = input.scan(str("\x1b[1;1A"));
+      expect(result.events.length).toBe(1);
+      expect(result.events[0]).toMatchObject({
+        type: "keydown",
+        key: "ArrowUp",
+        code: "ArrowUp",
+      });
+    });
+
+    it("parses delete with action", () => {
+      let result = input.scan(str("\x1b[3;1:1~"));
+      expect(result.events.length).toBe(1);
+      expect(result.events[0]).toMatchObject({
+        type: "keydown",
+        key: "Delete",
+        code: "Delete",
+      });
+    });
+
+    it("parses F1 with action", () => {
+      let result = input.scan(str("\x1b[1;1:1P"));
+      expect(result.events.length).toBe(1);
+      expect(result.events[0]).toMatchObject({
+        type: "keydown",
+        key: "F1",
+        code: "F1",
+      });
     });
   });
 
