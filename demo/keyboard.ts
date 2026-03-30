@@ -380,6 +380,23 @@ function keyboard(ctx: AppContext): Op[] {
     close(),
     text(` ${badgeHint}`, { color: dim }),
     close(),
+    open("box", { layout: { height: fixed(1) } }),
+    close(),
+  );
+
+  // mouse capture badge
+  let mouseBg = ctx["Capture mouse events"] ? rgba(40, 180, 80) : rgba(80, 80, 80);
+  let mouseLabel = ctx["Capture mouse events"] ? "capture" : "system";
+  ops.push(
+    open("box", { layout: { direction: "ltr", height: fixed(1), padding: { bottom: 1 } } }),
+    open("box", { layout: { padding: { left: 1, right: 1 } }, bg: rgba(60, 60, 60) }),
+    text("mouse", { color: rgba(220, 220, 220) }),
+    close(),
+    open("box", { layout: { padding: { left: 1, right: 1 } }, bg: mouseBg }),
+    text(mouseLabel, { color: rgba(255, 255, 255) }),
+    close(),
+    text(" Ctrl+X Ctrl+M to toggle", { color: dim }),
+    close(),
   );
 
   // toggles right-aligned above keyboard
@@ -442,7 +459,10 @@ function ttyFlags(ctx: AppContext): Uint8Array {
   if (ctx["Report alternate keys"]) bits |= 4;
   if (ctx["Report all keys as escapes"]) bits |= 8;
   if (ctx["Report associated text"]) bits |= 16;
-  return encoder.encode(`\x1b[<u\x1b[>${bits}u`);
+  let mouse = ctx["Capture mouse events"]
+    ? "\x1b[?1003h\x1b[?1006h"
+    : "\x1b[?1003l\x1b[?1006l";
+  return encoder.encode(`\x1b[<u\x1b[>${bits}u${mouse}`);
 }
 
 await main(function* () {
@@ -459,7 +479,7 @@ await main(function* () {
 
   esc("\x1b[?1049h\x1b[?25l\x1b[>3u");
   yield* ensure(() => {
-    esc("\x1b[<u\x1b[?25h\x1b[?1049l");
+    esc("\x1b[?1003l\x1b[?1006l\x1b[<u\x1b[?25h\x1b[?1049l");
   });
 
   let modality = recognizer();
@@ -491,6 +511,7 @@ function* recognizer(): Iterator<AppContext, never, InputEvent> {
     "Report alternate keys": false,
     "Report all keys as escapes": false,
     "Report associated text": false,
+    "Capture mouse events": false,
     event: null,
   };
 
@@ -522,6 +543,14 @@ function* inputmode(context: AppContext): Mode {
           ...context,
           event: null,
         });
+      } else if (next.key === "m" && next.ctrl) {
+        context = {
+          ...context,
+          "Capture mouse events": !context["Capture mouse events"],
+          event: null,
+        };
+        event = yield context;
+        continue;
       }
     }
     event = yield context;
@@ -566,11 +595,12 @@ function* configmode(context: AppContext): Mode {
 
 type AppContext = {
   mode: "input" | "config";
-  event: InputEvent | null;  
+  event: InputEvent | null;
   ["Disambiguate escape codes"]: boolean;
   ["Report event types"]: boolean;
   ["Report alternate keys"]: boolean;
   ["Report all keys as escapes"]: boolean;
   ["Report associated text"]: boolean;
+  ["Capture mouse events"]: boolean;
 };
 
