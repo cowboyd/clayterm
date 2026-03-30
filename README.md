@@ -1,9 +1,47 @@
 # clayterm
 
-A terminal rendering backend for [Clay](https://github.com/nicbarker/clay), and
-a terminal input event parser compiled to WebAssembly.
+A low-level, platform-independent terminal renderer and event parser for JavaScript. You can use clayterm directly, or as the foundation for your own framework.
+
+## Features
+
+**Declarative terminal UI** — Build terminal interfaces the same way you'd
+build a web page. Clayterm uses [Clay](https://github.com/nicbarker/clay) under
+the hood, giving you flexbox-like layout, pointer detection, and scroll
+containers — all rendered to the terminal as box-drawing characters and ANSI
+escape sequences.
+
+**Zero I/O** — Clayterm never reads stdin or writes stdout. You feed it bytes
+and get bytes back. This makes it trivially embeddable in any framework, any
+runtime, any event loop. There are no opinions about how you do I/O, just pure
+computation.
+
+**Runs everywhere** — The entire engine is compiled to WebAssembly, so
+clayterm will run anywhere JavaScript runs with no native
+dependencies, and no build step for consumers.
+
+### Demo
+
+The application in this demo uses Clayterm for all layout and input parsing
+
+#### Keyboard Events
+
+The input parser decodes raw terminal bytes into structured events.
+Here you can see each key event as the string "hello world" is typed.
+
+![Keyboard events demo](demo/keyboard-key-events.gif)
+
+#### Pointer Events
+
+Here we see hover styles applied to UI elements in response to the
+pointer state. Clay drives the hit testing; no manual coordinate math
+required.
+
+![Pointer events demo](demo/keyboard-pointer-events.gif)
+
 
 ## Architecture
+
+Clayterm does not do any I/O itself. On the ouput side, it converts UI elements into a raw sequence of bytes and pointer events, and on the input side, it converts a stream of raw bytes into structured events.
 
 ### Output
 
@@ -54,10 +92,10 @@ multi-byte sequences time to arrive.
                                  |                           |
 +---------------+                |                           |
 |               |  events[]      |                           |
-| CharEvent     | <============= |                           |
-| KeyEvent      |                |                           |
-| MouseEvent    |                +---------------------------+
-| DragEvent     |
+| KeyEvent      | <============= |                           |
+| MouseDownEvent|                |                           |
+| MouseUpEvent  |                +---------------------------+
+| MouseMoveEvent|
 | WheelEvent    |
 | ResizeEvent   |
 +---------------+
@@ -65,25 +103,30 @@ multi-byte sequences time to arrive.
 
 ## Usage
 
-### Output
+### Rendering
+
+To render this:
+
+```
+╭───────────────╮
+│ Hello, World! │
+╰───────────────╯
+```
 
 ```typescript
 import { close, createTerm, grow, open, rgba, text } from "clayterm";
 
-const term = await createTerm({ width: 80, height: 24 });
+let term = await createTerm({ width: 80, height: 24 });
 
-const ansi = term.render([
+let { output } = term.render([
   open("root", {
     layout: { width: grow(), height: grow(), direction: "ttb" },
   }),
-  open("box", {
-    layout: { padding: { left: 2, top: 1 } },
+  open("greeting", {
+    layout: { padding: { left: 1, right: 1 } },
     border: {
       color: rgba(0, 255, 0),
-      left: 1,
-      right: 1,
-      top: 1,
-      bottom: 1,
+      left: 1, right: 1, top: 1, bottom: 1,
     },
     cornerRadius: { tl: 1, tr: 1, bl: 1, br: 1 },
   }),
@@ -92,15 +135,51 @@ const ansi = term.render([
   close(),
 ]);
 
-process.stdout.write(ansi);
+process.stdout.write(output);
 ```
 
-### Input
+### Pointer detection
+
+Pass pointer state to `render()` to have clayterm do hit detection and return
+pointer events in addition to the byte sequence.
+
+```typescript
+let { output, events } = term.render([
+  open("root", {
+    layout: { width: grow(), height: grow(), direction: "ltr" },
+  }),
+  open("sidebar", {
+    layout: { width: fixed(20), height: grow() },
+    bg: rgba(30, 30, 40),
+  }),
+  text("Sidebar"),
+  close(),
+  open("main", {
+    layout: { width: grow(), height: grow() },
+  }),
+  text("Main content"),
+  close(),
+  close(),
+], {
+  pointer: { x: mouseX, y: mouseY, down: mouseDown },
+});
+
+for (let event of events) {
+  // { type: "pointerenter", id: "sidebar" }
+  // { type: "pointerleave", id: "sidebar" }
+  // { type: "pointerclick", id: "main" }
+  console.log(event);
+}
+
+process.stdout.write(output);
+```
+
+### Input parsing
 
 ```typescript
 import { createInput } from "clayterm/input";
 
-const input = await createInput({ escLatency: 25 });
+let input = await createInput({ escLatency: 25 });
 
 process.stdin.setRawMode(true);
 let timer: ReturnType<typeof setTimeout> | undefined;
