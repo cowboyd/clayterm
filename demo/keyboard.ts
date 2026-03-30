@@ -395,7 +395,7 @@ function keyboard(ctx: AppContext): Op[] {
   let badgeLabel = ctx.mode === "input" ? "input" : "config";
   let badgeHint = ctx.mode === "input"
     ? "Ctrl+X Ctrl+X to enter config"
-    : "Set flags with keys [1-5], Enter to save";
+    : "Set flags with keys [0-5], Enter to save";
   ops.push(
     open("box", { layout: { direction: "ltr", height: fixed(1), padding: { bottom: 1 } } }),
     open("box", { layout: { padding: { left: 1, right: 1 } }, bg: rgba(60, 60, 60) }),
