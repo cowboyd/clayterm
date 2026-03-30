@@ -1,23 +1,25 @@
 # clayterm
 
-A low-level, platform-independent terminal renderer and event parser for JavaScript. You can use clayterm directly, or as the foundation for your own framework.
+A low-level, platform-independent terminal renderer and event parser for
+JavaScript. You can use clayterm directly, or as the foundation for your own
+framework.
 
 ## Features
 
-**Declarative terminal UI** — Build terminal interfaces the same way you'd
-build a web page. Clayterm uses [Clay](https://github.com/nicbarker/clay) under
-the hood, giving you flexbox-like layout, pointer detection, and scroll
-containers — all rendered to the terminal as box-drawing characters and ANSI
-escape sequences.
+**Declarative terminal UI** — Build terminal interfaces the same way you'd build
+a web page. Clayterm uses [Clay](https://github.com/nicbarker/clay) under the
+hood, giving you flexbox-like layout, pointer detection, and scroll containers —
+all rendered to the terminal as box-drawing characters and ANSI escape
+sequences.
 
 **Zero I/O** — Clayterm never reads stdin or writes stdout. You feed it bytes
 and get bytes back. This makes it trivially embeddable in any framework, any
 runtime, any event loop. There are no opinions about how you do I/O, just pure
 computation.
 
-**Runs everywhere** — The entire engine is compiled to WebAssembly, so
-clayterm will run anywhere JavaScript runs with no native
-dependencies, and no build step for consumers.
+**Runs everywhere** — The entire engine is compiled to WebAssembly, so clayterm
+will run anywhere JavaScript runs with no native dependencies, and no build step
+for consumers.
 
 ### Demo
 
@@ -25,23 +27,23 @@ The application in this demo uses Clayterm for all layout and input parsing
 
 #### Keyboard Events
 
-The input parser decodes raw terminal bytes into structured events.
-Here you can see each key event as the string "hello world" is typed.
+The input parser decodes raw terminal bytes into structured events. Here you can
+see each key event as the string "hello world" is typed.
 
 ![Keyboard events demo](demo/keyboard-key-events.gif)
 
 #### Pointer Events
 
-Here we see hover styles applied to UI elements in response to the
-pointer state. Clay drives the hit testing; no manual coordinate math
-required.
+Here we see hover styles applied to UI elements in response to the pointer
+state. Clay drives the hit testing; no manual coordinate math required.
 
 ![Pointer events demo](demo/keyboard-pointer-events.gif)
 
-
 ## Architecture
 
-Clayterm does not do any I/O itself. On the ouput side, it converts UI elements into a raw sequence of bytes and pointer events, and on the input side, it converts a stream of raw bytes into structured events.
+Clayterm does not do any I/O itself. On the ouput side, it converts UI elements
+into a raw sequence of bytes and pointer events, and on the input side, it
+converts a stream of raw bytes into structured events.
 
 ### Output
 
@@ -126,7 +128,10 @@ let { output } = term.render([
     layout: { padding: { left: 1, right: 1 } },
     border: {
       color: rgba(0, 255, 0),
-      left: 1, right: 1, top: 1, bottom: 1,
+      left: 1,
+      right: 1,
+      top: 1,
+      bottom: 1,
     },
     cornerRadius: { tl: 1, tr: 1, bl: 1, br: 1 },
   }),

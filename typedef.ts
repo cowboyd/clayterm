@@ -22,7 +22,15 @@ export type Struct<T> = {
 };
 
 export type Num<T> = {
-  type: "i32" | "f32" | "f64" | "uint8" | "uint16" | "uint32" | "int16" | "int32";
+  type:
+    | "i32"
+    | "f32"
+    | "f64"
+    | "uint8"
+    | "uint16"
+    | "uint32"
+    | "int16"
+    | "int32";
   byteAlign: Alignment;
   byteLength: number;
   T?: T;

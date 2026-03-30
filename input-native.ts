@@ -77,7 +77,15 @@ export const KEY_TAB = 0x09;
 export const KEY_BACKSPACE = 0x7F;
 export const KEY_SPACE = 0x20;
 
-import { array, int32, offsets, struct, uint8, uint16, uint32 } from "./typedef.ts";
+import {
+  array,
+  int32,
+  offsets,
+  struct,
+  uint16,
+  uint32,
+  uint8,
+} from "./typedef.ts";
 
 const MAX_TEXT_CODEPOINTS = 8;
 

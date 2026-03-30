@@ -11,12 +11,17 @@ import {
   EVENT_KEY,
   EVENT_MOUSE,
   EVENT_RESIZE,
+  KEY_ALT_LEFT,
+  KEY_ALT_RIGHT,
   KEY_ARROW_DOWN,
   KEY_ARROW_LEFT,
   KEY_ARROW_RIGHT,
   KEY_ARROW_UP,
   KEY_BACKSPACE,
   KEY_BACKTAB,
+  KEY_CAPS_LOCK,
+  KEY_CONTROL_LEFT,
+  KEY_CONTROL_RIGHT,
   KEY_DELETE,
   KEY_END,
   KEY_ENTER,
@@ -34,7 +39,18 @@ import {
   KEY_F8,
   KEY_F9,
   KEY_HOME,
+  KEY_HYPER_LEFT,
+  KEY_HYPER_RIGHT,
   KEY_INSERT,
+  KEY_META_LEFT,
+  KEY_META_RIGHT,
+  KEY_MOUSE_LEFT,
+  KEY_MOUSE_MIDDLE,
+  KEY_MOUSE_RELEASE,
+  KEY_MOUSE_RIGHT,
+  KEY_MOUSE_WHEEL_DOWN,
+  KEY_MOUSE_WHEEL_UP,
+  KEY_NUM_LOCK,
   KEY_NUMPAD_0,
   KEY_NUMPAD_1,
   KEY_NUMPAD_2,
@@ -52,29 +68,13 @@ import {
   KEY_NUMPAD_EQUAL,
   KEY_NUMPAD_MULTIPLY,
   KEY_NUMPAD_SUBTRACT,
-  KEY_META_LEFT,
-  KEY_META_RIGHT,
-  KEY_NUM_LOCK,
+  KEY_PGDN,
+  KEY_PGUP,
   KEY_SCROLL_LOCK,
   KEY_SHIFT_LEFT,
   KEY_SHIFT_RIGHT,
-  KEY_CONTROL_LEFT,
-  KEY_CONTROL_RIGHT,
-  KEY_ALT_LEFT,
-  KEY_ALT_RIGHT,
   KEY_SUPER_LEFT,
   KEY_SUPER_RIGHT,
-  KEY_HYPER_LEFT,
-  KEY_HYPER_RIGHT,
-  KEY_CAPS_LOCK,
-  KEY_MOUSE_LEFT,
-  KEY_MOUSE_MIDDLE,
-  KEY_MOUSE_RELEASE,
-  KEY_MOUSE_RIGHT,
-  KEY_MOUSE_WHEEL_DOWN,
-  KEY_MOUSE_WHEEL_UP,
-  KEY_PGDN,
-  KEY_PGUP,
   KEY_TAB,
   MAX_TERMINFO,
   MOD_ALT,
@@ -100,28 +100,113 @@ export interface KeyModifiers {
  * Physical key identity on a US PC-101 layout.
  */
 export type KeyCode =
-  | "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i"
-  | "j" | "k" | "l" | "m" | "n" | "o" | "p" | "q" | "r"
-  | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"
-  | "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
-  | "`" | "-" | "=" | "[" | "]" | "\\" | ";" | "'" | "," | "." | "/" | " "
-  | "F1" | "F2" | "F3" | "F4" | "F5" | "F6"
-  | "F7" | "F8" | "F9" | "F10" | "F11" | "F12"
-  | "ArrowUp" | "ArrowDown" | "ArrowLeft" | "ArrowRight"
-  | "Home" | "End" | "Insert" | "Delete"
-  | "PageUp" | "PageDown" | "Backtab"
-  | "Backspace" | "Tab" | "Enter" | "Escape"
-  | "Numpad0" | "Numpad1" | "Numpad2" | "Numpad3" | "Numpad4"
-  | "Numpad5" | "Numpad6" | "Numpad7" | "Numpad8" | "Numpad9"
-  | "NumpadDecimal" | "NumpadDivide" | "NumpadMultiply"
-  | "NumpadSubtract" | "NumpadAdd" | "NumpadEnter" | "NumpadEqual"
-  | "ShiftLeft" | "ShiftRight"
-  | "ControlLeft" | "ControlRight"
-  | "AltLeft" | "AltRight"
-  | "SuperLeft" | "SuperRight"
-  | "HyperLeft" | "HyperRight"
-  | "MetaLeft" | "MetaRight"
-  | "CapsLock" | "NumLock" | "ScrollLock";
+  | "a"
+  | "b"
+  | "c"
+  | "d"
+  | "e"
+  | "f"
+  | "g"
+  | "h"
+  | "i"
+  | "j"
+  | "k"
+  | "l"
+  | "m"
+  | "n"
+  | "o"
+  | "p"
+  | "q"
+  | "r"
+  | "s"
+  | "t"
+  | "u"
+  | "v"
+  | "w"
+  | "x"
+  | "y"
+  | "z"
+  | "0"
+  | "1"
+  | "2"
+  | "3"
+  | "4"
+  | "5"
+  | "6"
+  | "7"
+  | "8"
+  | "9"
+  | "`"
+  | "-"
+  | "="
+  | "["
+  | "]"
+  | "\\"
+  | ";"
+  | "'"
+  | ","
+  | "."
+  | "/"
+  | " "
+  | "F1"
+  | "F2"
+  | "F3"
+  | "F4"
+  | "F5"
+  | "F6"
+  | "F7"
+  | "F8"
+  | "F9"
+  | "F10"
+  | "F11"
+  | "F12"
+  | "ArrowUp"
+  | "ArrowDown"
+  | "ArrowLeft"
+  | "ArrowRight"
+  | "Home"
+  | "End"
+  | "Insert"
+  | "Delete"
+  | "PageUp"
+  | "PageDown"
+  | "Backtab"
+  | "Backspace"
+  | "Tab"
+  | "Enter"
+  | "Escape"
+  | "Numpad0"
+  | "Numpad1"
+  | "Numpad2"
+  | "Numpad3"
+  | "Numpad4"
+  | "Numpad5"
+  | "Numpad6"
+  | "Numpad7"
+  | "Numpad8"
+  | "Numpad9"
+  | "NumpadDecimal"
+  | "NumpadDivide"
+  | "NumpadMultiply"
+  | "NumpadSubtract"
+  | "NumpadAdd"
+  | "NumpadEnter"
+  | "NumpadEqual"
+  | "ShiftLeft"
+  | "ShiftRight"
+  | "ControlLeft"
+  | "ControlRight"
+  | "AltLeft"
+  | "AltRight"
+  | "SuperLeft"
+  | "SuperRight"
+  | "HyperLeft"
+  | "HyperRight"
+  | "MetaLeft"
+  | "MetaRight"
+  | "CapsLock"
+  | "NumLock"
+  | "ScrollLock";
 
 /**
  * Shared key information present on all keyboard events.
@@ -499,9 +584,8 @@ function textFromNative(native: NativeInputEvent): string | undefined {
 
 function mapKeyEvent(native: NativeInputEvent): KeyEvent {
   let key = keyName(native);
-  let code = (native.base > 0
-    ? String.fromCodePoint(native.base)
-    : key) as KeyCode;
+  let code =
+    (native.base > 0 ? String.fromCodePoint(native.base) : key) as KeyCode;
   let m = mods(native);
   let isChar = !KEY_NAMES.has(native.key);
   let text = textFromNative(native);

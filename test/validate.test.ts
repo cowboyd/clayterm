@@ -89,13 +89,15 @@ describe("validated", () => {
 
   it("renders valid ops normally", () => {
     let out = print(
-      decode(term.render([
-        open("root", {
-          layout: { width: grow(), height: grow(), direction: "ttb" },
-        }),
-        text("Hello, World!"),
-        close(),
-      ])),
+      decode(
+        term.render([
+          open("root", {
+            layout: { width: grow(), height: grow(), direction: "ttb" },
+          }),
+          text("Hello, World!"),
+          close(),
+        ]).output,
+      ),
       40,
       10,
     );

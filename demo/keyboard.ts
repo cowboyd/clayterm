@@ -1,5 +1,14 @@
 // deno-lint-ignore-file no-fallthrough
-import { createChannel, each, ensure, main, race, resource, type Stream, until } from "effection";
+import {
+  createChannel,
+  each,
+  ensure,
+  main,
+  race,
+  resource,
+  type Stream,
+  until,
+} from "effection";
 import {
   close,
   createTerm,
@@ -37,7 +46,8 @@ function isKeyEvent(e: InputEvent | PointerEvent): e is KeyEvent {
 }
 
 function matches(k: KeyDef, event: InputEvent | PointerEvent): boolean {
-  return isKeyEvent(event) && event.type === "keydown" && event.code.toUpperCase() === k.code.toUpperCase();
+  return isKeyEvent(event) && event.type === "keydown" &&
+    event.code.toUpperCase() === k.code.toUpperCase();
 }
 
 let hovered = rgba(80, 80, 100);
@@ -310,13 +320,15 @@ function toggle(ops: Op[], enabled: boolean, name: string): void {
   );
 }
 
-let flagNames: (keyof Omit<AppContext, "mode" | "event" | "logged" | "log" | "entered">)[] = [
-  "Disambiguate escape codes",
-  "Report event types",
-  "Report alternate keys",
-  "Report all keys as escapes",
-  "Report associated text",
-];
+let flagNames:
+  (keyof Omit<AppContext, "mode" | "event" | "logged" | "log" | "entered">)[] =
+    [
+      "Disambiguate escape codes",
+      "Report event types",
+      "Report alternate keys",
+      "Report all keys as escapes",
+      "Report associated text",
+    ];
 
 let logEntries: { key: string; name: keyof EventFilter }[] = [
   { key: "a", name: "keydown" },
@@ -332,10 +344,16 @@ let logEntries: { key: string; name: keyof EventFilter }[] = [
   { key: "k", name: "pointerclick" },
 ];
 
-function logToggle(ops: Op[], entries: typeof logEntries, ctx: AppContext): void {
+function logToggle(
+  ops: Op[],
+  entries: typeof logEntries,
+  ctx: AppContext,
+): void {
   for (let entry of entries) {
     ops.push(
-      open(`log:${entry.name}`, { layout: { direction: "ltr", height: fixed(1), gap: 1 } }),
+      open(`log:${entry.name}`, {
+        layout: { direction: "ltr", height: fixed(1), gap: 1 },
+      }),
     );
     ops.push(text(`${entry.key}.`, { color: dim }));
     toggle(ops, ctx.log[entry.name], entry.name);
@@ -364,7 +382,9 @@ function configPanel(ops: Op[], ctx: AppContext): void {
   for (let i = 0; i < flagNames.length; i++) {
     let name = flagNames[i];
     ops.push(
-      open(`flag:${name}`, { layout: { direction: "ltr", height: fixed(1), gap: 1 } }),
+      open(`flag:${name}`, {
+        layout: { direction: "ltr", height: fixed(1), gap: 1 },
+      }),
     );
     ops.push(text(`${i + 1}.`, { color: dim }));
     toggle(ops, ctx[name], name);
@@ -437,12 +457,21 @@ function keyboard(ctx: AppContext): Op[] {
   let badgeHint = ctx.mode === "input"
     ? "Ctrl+X Ctrl+X to enter config"
     : "Set flags with keys [0-5], Enter to save";
-  let mouseBg = ctx["Capture mouse events"] ? rgba(40, 180, 80) : rgba(80, 80, 80);
+  let mouseBg = ctx["Capture mouse events"]
+    ? rgba(40, 180, 80)
+    : rgba(80, 80, 80);
   let mouseLabel = ctx["Capture mouse events"] ? "capture" : "system";
   ops.push(
-    open("badges", { layout: { direction: "ttb", gap: 1, padding: { top: 1 } } }),
-    open("badge:mode", { layout: { direction: "ltr", height: fixed(1), padding: { bottom: 1 } } }),
-    open("", { layout: { padding: { left: 1, right: 1 } }, bg: rgba(60, 60, 60) }),
+    open("badges", {
+      layout: { direction: "ttb", gap: 1, padding: { top: 1 } },
+    }),
+    open("badge:mode", {
+      layout: { direction: "ltr", height: fixed(1), padding: { bottom: 1 } },
+    }),
+    open("", {
+      layout: { padding: { left: 1, right: 1 } },
+      bg: rgba(60, 60, 60),
+    }),
     text("mode", { color: rgba(220, 220, 220) }),
     close(),
     open("", { layout: { padding: { left: 1, right: 1 } }, bg: badgeBg }),
@@ -451,7 +480,10 @@ function keyboard(ctx: AppContext): Op[] {
     text(` ${badgeHint}`, { color: dim }),
     close(),
     open("badge:mouse", { layout: { direction: "ltr", height: fixed(1) } }),
-    open("", { layout: { padding: { left: 1, right: 1 } }, bg: rgba(60, 60, 60) }),
+    open("", {
+      layout: { padding: { left: 1, right: 1 } },
+      bg: rgba(60, 60, 60),
+    }),
     text("mouse", { color: rgba(220, 220, 220) }),
     close(),
     open("", { layout: { padding: { left: 1, right: 1 } }, bg: mouseBg }),
@@ -552,7 +584,7 @@ await main(function* () {
 
   let pointer = {
     events: createChannel<PointerEvent, void>(),
-    state: undefined as { x: number; y: number; down: boolean} | undefined,
+    state: undefined as { x: number; y: number; down: boolean } | undefined,
   };
 
   for (let event of yield* each(merge(input, pointer.events))) {
@@ -578,18 +610,24 @@ await main(function* () {
 
     if (context["Capture mouse events"]) {
       if ("x" in event) {
-        pointer.state = { x: event.x, y: event.y, down: event.type === "mousedown" };
+        pointer.state = {
+          x: event.x,
+          y: event.y,
+          down: event.type === "mousedown",
+        };
       }
     } else {
       pointer.state = undefined;
     }
 
-    let { output, events } = term.render(keyboard(context), { pointer: pointer.state });
+    let { output, events } = term.render(keyboard(context), {
+      pointer: pointer.state,
+    });
 
     for (let event of events) {
       yield* pointer.events.send(event);
     }
-    
+
     Deno.stdout.writeSync(output);
 
     yield* each.next();
@@ -623,7 +661,7 @@ function* recognizer(): Iterator<AppContext, never, InputEvent | PointerEvent> {
     logged: null,
   };
 
-  let event= yield current;
+  let event = yield current;
 
   let mode = inputmode({ ...current, event });
 
@@ -670,58 +708,62 @@ function* configmode(context: AppContext): Mode {
   let event = yield context;
   while (true) {
     if (event.type === "keydown" && event.key === "Enter") {
-      return inputmode({...context, event: null });
+      return inputmode({ ...context, event: null });
     }
     if (event.type === "keydown") {
       let k = (event as KeyEvent).key;
       let entry = logEntries.find((e) => e.key === k);
       if (entry) {
-        context = { ...context, log: { ...context.log, [entry.name]: !context.log[entry.name] } };
+        context = {
+          ...context,
+          log: { ...context.log, [entry.name]: !context.log[entry.name] },
+        };
       }
       if ("012345".indexOf(event.key) >= 0) {
-      context = { ...context };
-      context["Report associated text"] = false;
-      context["Report all keys as escapes"] = false;
-      context["Report alternate keys"] = false;
-      context["Report event types"] = false;
-      context["Disambiguate escape codes"] = false;                        
-      switch (event.key) {
-        case "5":
-          context["Report associated text"] = true;
-        case "4":
-          context["Report all keys as escapes"] = true;
-        case "3":
-          context["Report alternate keys"] = true;
-        case "2":
-          context["Report event types"] = true;
-        case "1":
-          context["Disambiguate escape codes"] = true;
-          break;
-        case "0":
-          break;
-      }
+        context = { ...context };
+        context["Report associated text"] = false;
+        context["Report all keys as escapes"] = false;
+        context["Report alternate keys"] = false;
+        context["Report event types"] = false;
+        context["Disambiguate escape codes"] = false;
+        switch (event.key) {
+          case "5":
+            context["Report associated text"] = true;
+          case "4":
+            context["Report all keys as escapes"] = true;
+          case "3":
+            context["Report alternate keys"] = true;
+          case "2":
+            context["Report event types"] = true;
+          case "1":
+            context["Disambiguate escape codes"] = true;
+            break;
+          case "0":
+            break;
+        }
       }
     }
     event = yield context;
   }
 }
 
-
-function merge<A,B, TClose>(a: Stream<A,TClose>, b: Stream<B,TClose>): Stream<A|B, TClose> {
-  return resource(function*(provide) {
+function merge<A, B, TClose>(
+  a: Stream<A, TClose>,
+  b: Stream<B, TClose>,
+): Stream<A | B, TClose> {
+  return resource(function* (provide) {
     let subscription = {
       a: yield* a,
       b: yield* b,
-    }
+    };
 
     return yield* provide({
       *next() {
-        return yield* race([subscription.a.next(),subscription.b.next()]);
+        return yield* race([subscription.a.next(), subscription.b.next()]);
       },
-    })
-  });  
+    });
+  });
 }
-
 
 type EventFilter = {
   keydown: boolean;
@@ -750,4 +792,3 @@ type AppContext = {
   ["Report associated text"]: boolean;
   ["Capture mouse events"]: boolean;
 };
-
