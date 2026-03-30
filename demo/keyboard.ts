@@ -105,19 +105,19 @@ function mainKeys(ops: Op[], ctx: AppContext): void {
   ], ctx);
 
   row(ops, [
-    { label: "`", code: "Backquote" },
-    { label: "1", code: "Digit1" },
-    { label: "2", code: "Digit2" },
-    { label: "3", code: "Digit3" },
-    { label: "4", code: "Digit4" },
-    { label: "5", code: "Digit5" },
-    { label: "6", code: "Digit6" },
-    { label: "7", code: "Digit7" },
-    { label: "8", code: "Digit8" },
-    { label: "9", code: "Digit9" },
-    { label: "0", code: "Digit0" },
-    { label: "-", code: "Minus" },
-    { label: "=", code: "Equal" },
+    { label: "`", code: "`" },
+    { label: "1", code: "1" },
+    { label: "2", code: "2" },
+    { label: "3", code: "3" },
+    { label: "4", code: "4" },
+    { label: "5", code: "5" },
+    { label: "6", code: "6" },
+    { label: "7", code: "7" },
+    { label: "8", code: "8" },
+    { label: "9", code: "9" },
+    { label: "0", code: "0" },
+    { label: "-", code: "-" },
+    { label: "=", code: "=" },
     { label: "Bksp", code: "Backspace", width: 9 },
   ], ctx);
 
@@ -133,9 +133,9 @@ function mainKeys(ops: Op[], ctx: AppContext): void {
     { label: "I", code: "i" },
     { label: "O", code: "o" },
     { label: "P", code: "p" },
-    { label: "[", code: "BracketLeft" },
-    { label: "]", code: "BracketRight" },
-    { label: "\\", code: "Backslash", width: 7 },
+    { label: "[", code: "[" },
+    { label: "]", code: "]" },
+    { label: "\\", code: "\\", width: 7 },
   ], ctx);
 
   row(ops, [
@@ -149,8 +149,8 @@ function mainKeys(ops: Op[], ctx: AppContext): void {
     { label: "J", code: "j" },
     { label: "K", code: "k" },
     { label: "L", code: "l" },
-    { label: ";", code: "Semicolon" },
-    { label: "'", code: "Quote" },
+    { label: ";", code: ";" },
+    { label: "'", code: "'" },
     { label: "Enter", code: "Enter", width: 10 },
   ], ctx);
 
@@ -163,9 +163,9 @@ function mainKeys(ops: Op[], ctx: AppContext): void {
     { label: "B", code: "b" },
     { label: "N", code: "n" },
     { label: "M", code: "m" },
-    { label: ",", code: "Comma" },
-    { label: ".", code: "Period" },
-    { label: "/", code: "Slash" },
+    { label: ",", code: "," },
+    { label: ".", code: "." },
+    { label: "/", code: "/" },
     { label: "Shift", code: "ShiftRight", width: 13 },
   ], ctx);
 
@@ -173,7 +173,7 @@ function mainKeys(ops: Op[], ctx: AppContext): void {
     { label: "Ctrl", code: "ControlLeft", width: 7 },
     { label: "Win", code: "SuperLeft", width: 6 },
     { label: "Alt", code: "AltLeft", width: 6 },
-    { label: "", code: "Space", width: 33 },
+    { label: "", code: " ", width: 33 },
     { label: "Alt", code: "AltRight", width: 6 },
     { label: "Win", code: "SuperRight", width: 6 },
     { label: "Menu", code: "Menu", width: 6 },
@@ -566,9 +566,12 @@ await main(function* () {
       context.entered.delete(event.id);
     }
 
+    let prev = context.logged;
     context = modality.next(event).value;
     if (context.event && context.log[context.event.type as keyof EventFilter]) {
       context = { ...context, logged: context.event };
+    } else {
+      context = { ...context, logged: prev };
     }
 
     Deno.stdout.writeSync(ttyFlags(context));
