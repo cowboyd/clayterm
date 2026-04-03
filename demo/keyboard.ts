@@ -22,6 +22,14 @@ import {
   rgba,
   text,
 } from "../mod.ts";
+import {
+  alternateBuffer,
+  cursor,
+  mouseTracking,
+  progressiveInput,
+  type Setting,
+  settings,
+} from "../settings.ts";
 import { useInput } from "./use-input.ts";
 import { useStdin } from "./use-stdin.ts";
 
@@ -539,20 +547,19 @@ function keyboard(ctx: AppContext): Op[] {
   return ops;
 }
 
-let encoder = new TextEncoder();
-let esc = (s: string) => Deno.stdout.writeSync(encoder.encode(s));
-
-function ttyFlags(ctx: AppContext): Uint8Array {
+function ttyFlags(ctx: AppContext): Setting {
+  let parts: Setting[] = [];
   let bits = 0;
   if (ctx["Disambiguate escape codes"]) bits |= 1;
   if (ctx["Report event types"]) bits |= 2;
   if (ctx["Report alternate keys"]) bits |= 4;
   if (ctx["Report all keys as escapes"]) bits |= 8;
   if (ctx["Report associated text"]) bits |= 16;
-  let mouse = ctx["Capture mouse events"]
-    ? "\x1b[?1003h\x1b[?1006h"
-    : "\x1b[?1003l\x1b[?1006l";
-  return encoder.encode(`\x1b[<u\x1b[>${bits}u${mouse}`);
+  parts.push(progressiveInput(bits));
+  if (ctx["Capture mouse events"]) {
+    parts.push(mouseTracking());
+  }
+  return settings(...parts);
 }
 
 await main(function* () {
@@ -567,16 +574,19 @@ await main(function* () {
 
   let term = yield* until(createTerm({ width: columns, height: rows }));
 
-  esc("\x1b[?1049h\x1b[?25l\x1b[>3u");
-  yield* ensure(() => {
-    esc("\x1b[?1003l\x1b[?1006l\x1b[<u\x1b[?25h\x1b[?1049l");
-  });
+  let tty = settings(alternateBuffer(), cursor(false));
+  Deno.stdout.writeSync(tty.apply);
 
   let modality = recognizer();
-
   let context = modality.next().value;
 
-  Deno.stdout.writeSync(ttyFlags(context));
+  let flags = ttyFlags(context);
+  Deno.stdout.writeSync(flags.apply);
+
+  yield* ensure(() => {
+    Deno.stdout.writeSync(flags.revert);
+    Deno.stdout.writeSync(tty.revert);
+  });
 
   let { output } = term.render(keyboard(context));
 
@@ -606,7 +616,9 @@ await main(function* () {
       context = { ...context, logged: prev };
     }
 
-    Deno.stdout.writeSync(ttyFlags(context));
+    Deno.stdout.writeSync(flags.revert);
+    flags = ttyFlags(context);
+    Deno.stdout.writeSync(flags.apply);
 
     if (context["Capture mouse events"]) {
       if ("x" in event) {
