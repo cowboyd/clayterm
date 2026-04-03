@@ -1,6 +1,7 @@
 export const EVENT_KEY = 1;
 export const EVENT_MOUSE = 2;
 export const EVENT_RESIZE = 3;
+export const EVENT_CURSOR = 4;
 
 export const MOD_ALT = 1;
 export const MOD_CTRL = 2;

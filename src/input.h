@@ -58,6 +58,7 @@
 #define EVENT_KEY 1
 #define EVENT_MOUSE 2
 #define EVENT_RESIZE 3
+#define EVENT_CURSOR 4
 
 /* ── Modifier flags (bitwise) ─────────────────────────────────────── */
 

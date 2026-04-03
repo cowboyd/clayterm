@@ -8,6 +8,7 @@
 
 import {
   createInputNative,
+  EVENT_CURSOR,
   EVENT_KEY,
   EVENT_MOUSE,
   EVENT_RESIZE,
@@ -350,6 +351,26 @@ export interface ResizeEvent {
   height: number;
 }
 
+/**
+ * Cursor position report (DSR response).
+ *
+ * Emitted when the terminal responds to a Device Status Report
+ * query (`\x1b[6n`) with the current cursor position.
+ */
+export interface CursorEvent {
+  type: "cursor";
+
+  /**
+   * Cursor row (0-based).
+   */
+  top: number;
+
+  /**
+   * Cursor column (0-based).
+   */
+  left: number;
+}
+
 import type { PointerEvent } from "./term.ts";
 
 export type InputEvent =
@@ -359,6 +380,7 @@ export type InputEvent =
   | MouseMoveEvent
   | WheelEvent
   | ResizeEvent
+  | CursorEvent
   | PointerEvent;
 
 /**
@@ -658,6 +680,9 @@ function mapEvent(native: NativeInputEvent): InputEvent {
     }
     case EVENT_RESIZE: {
       return { type: "resize", width: native.w, height: native.h };
+    }
+    case EVENT_CURSOR: {
+      return { type: "cursor", top: native.y, left: native.x };
     }
     default: {
       return mapKeyEvent(native);

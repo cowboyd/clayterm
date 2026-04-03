@@ -91,7 +91,7 @@ describe("term", () => {
 
   describe("row offset", () => {
     it("renders two frames at the offset position", async () => {
-      let term = await createTerm({ width: 20, height: 5, row: 5 });
+      let term = await createTerm({ width: 20, height: 5, top: 5 });
       let box = (msg: string) => [
         open("root", {
           layout: { width: grow(), height: grow(), direction: "ttb" },

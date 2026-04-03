@@ -681,6 +681,40 @@ describe("input", () => {
     });
   });
 
+  describe("cursor position (DSR response)", () => {
+    it("parses cursor position report", () => {
+      let result = input.scan(str("\x1b[24;80R"));
+      expect(result.events.length).toBe(1);
+      expect(result.events[0]).toMatchObject({
+        type: "cursor",
+        top: 23,
+        left: 79,
+      });
+    });
+
+    it("parses cursor at origin", () => {
+      let result = input.scan(str("\x1b[1;1R"));
+      expect(result.events.length).toBe(1);
+      expect(result.events[0]).toMatchObject({
+        type: "cursor",
+        top: 0,
+        left: 0,
+      });
+    });
+
+    it("parses cursor interleaved with other input", () => {
+      let result = input.scan(str("a\x1b[10;5Rb"));
+      expect(result.events.length).toBe(3);
+      expect(result.events[0]).toMatchObject({ type: "keydown", key: "a" });
+      expect(result.events[1]).toMatchObject({
+        type: "cursor",
+        top: 9,
+        left: 4,
+      });
+      expect(result.events[2]).toMatchObject({ type: "keydown", key: "b" });
+    });
+  });
+
   describe("UTF-8", () => {
     it("parses 2-byte UTF-8 (é)", () => {
       let result = input.scan(bytes(0xc3, 0xa9));

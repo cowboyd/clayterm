@@ -573,6 +573,49 @@ static uint16_t csi_legacy_key(char term, int number) {
   }
 }
 
+/* Parse DSR cursor position response: CSI row ; col R */
+static int parse_cursor(struct InputState *st, struct InputEvent *ev) {
+  if (st->len < 2)
+    return PARSE_NEED_MORE;
+  if (st->buf[0] != '\x1b' || st->buf[1] != '[')
+    return PARSE_ERR;
+  if (st->len < 3)
+    return PARSE_NEED_MORE;
+
+  int row = 0;
+  int col = 0;
+  int param = 0;
+  int i = 2;
+
+  while (i < st->len) {
+    char c = st->buf[i];
+    if (c >= '0' && c <= '9') {
+      if (param == 0) {
+        row = row * 10 + (c - '0');
+      } else {
+        col = col * 10 + (c - '0');
+      }
+    } else if (c == ';') {
+      if (param > 0)
+        return PARSE_ERR;
+      param++;
+    } else if (c == 'R') {
+      if (param != 1)
+        return PARSE_ERR;
+      i++;
+      ev->type = EVENT_CURSOR;
+      ev->y = row - 1;
+      ev->x = col - 1;
+      shift(st, i);
+      return PARSE_OK;
+    } else {
+      return PARSE_ERR;
+    }
+    i++;
+  }
+  return PARSE_NEED_MORE;
+}
+
 /* Parse Kitty-enhanced legacy CSI sequences (non-u terminators).
  * Format: CSI [number] [; mod[:action]] terminator
  * Handles A-D, F, H, P, Q, S, ~ terminators with optional :action */
@@ -975,6 +1018,22 @@ int input_scan(struct InputState *st, const char *buf, int len, double now) {
         struct InputEvent kev;
         memset(&kev, 0, sizeof(kev));
         int rv = parse_csi_u(st, &kev);
+        if (rv == PARSE_OK) {
+          struct InputEvent *ev = emit(st);
+          *ev = kev;
+          st->esc_time = 0;
+          continue;
+        }
+        if (rv == PARSE_NEED_MORE) {
+          return accepted;
+        }
+      }
+
+      /* try DSR cursor position response */
+      {
+        struct InputEvent kev;
+        memset(&kev, 0, sizeof(kev));
+        int rv = parse_cursor(st, &kev);
         if (rv == PARSE_OK) {
           struct InputEvent *ev = emit(st);
           *ev = kev;
