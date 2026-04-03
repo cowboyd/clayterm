@@ -35,7 +35,7 @@
 /* ── Instance state ───────────────────────────────────────────────── */
 
 struct Clayterm {
-  int w, h;
+  int w, h, row;
   Cell *front;
   Cell *back;
   Buffer out;
@@ -131,7 +131,7 @@ static void emit_attr(struct Clayterm *ct, uint32_t fg, uint32_t bg) {
 
 static void emit_cursor(struct Clayterm *ct, int x, int y) {
   buf_str(&ct->out, "\x1b[");
-  buf_num(&ct->out, y + 1);
+  buf_num(&ct->out, y + 1 + ct->row);
   buf_put(&ct->out, ";", 1);
   buf_num(&ct->out, x + 1);
   buf_put(&ct->out, "H", 1);
@@ -352,7 +352,7 @@ int clayterm_size(int w, int h) {
 
 static void clay_error(Clay_ErrorData err) { (void)err; }
 
-struct Clayterm *init(void *mem, int w, int h) {
+struct Clayterm *init(void *mem, int w, int h, int row) {
   struct Clayterm *ct = (struct Clayterm *)mem;
   int cell_count = w * h;
   int cell_bytes = align8(cell_count * (int)sizeof(Cell));
@@ -369,6 +369,7 @@ struct Clayterm *init(void *mem, int w, int h) {
   *ct = (struct Clayterm){
       .w = w,
       .h = h,
+      .row = row,
       .front = (Cell *)base,
       .back = (Cell *)(base + cell_bytes),
       .out = {base + cell_bytes * 2, 0, cell_count * OUT_BYTES_PER_CELL},
@@ -557,19 +558,19 @@ char *output(struct Clayterm *ct) { return ct->out.data; }
 
 int length(struct Clayterm *ct) { return ct->out.length; }
 
-int pointer_over_count(void) {
-  return Clay_GetPointerOverIds().length;
-}
+int pointer_over_count(void) { return Clay_GetPointerOverIds().length; }
 
 int pointer_over_id_string_length(int index) {
   Clay_ElementIdArray ids = Clay_GetPointerOverIds();
-  if (index >= ids.length) return 0;
+  if (index >= ids.length)
+    return 0;
   return ids.internalArray[index].stringId.length;
 }
 
 int pointer_over_id_string_ptr(int index) {
   Clay_ElementIdArray ids = Clay_GetPointerOverIds();
-  if (index >= ids.length) return 0;
+  if (index >= ids.length)
+    return 0;
   return (int)ids.internalArray[index].stringId.chars;
 }
 

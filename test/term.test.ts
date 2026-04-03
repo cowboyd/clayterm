@@ -88,4 +88,62 @@ describe("term", () => {
 │                                      │
 ╰──────────────────────────────────────╯`.trim());
   });
+
+  describe("row offset", () => {
+    it("renders two frames at the offset position", async () => {
+      let term = await createTerm({ width: 20, height: 5, row: 5 });
+      let box = (msg: string) => [
+        open("root", {
+          layout: { width: grow(), height: grow(), direction: "ttb" },
+        }),
+        open("box", {
+          layout: {
+            width: grow(),
+            height: grow(),
+            direction: "ttb",
+            padding: { left: 1, top: 1 },
+          },
+          border: {
+            color: rgba(255, 255, 255),
+            left: 1,
+            right: 1,
+            top: 1,
+            bottom: 1,
+          },
+        }),
+        text(msg),
+        close(),
+        close(),
+      ];
+
+      let header = await createTerm({ width: 20, height: 5 });
+      let banner = decode(header.render(box("hello")).output);
+
+      let first = decode(term.render(box("world")).output);
+      expect(print(banner + first, 20, 10)).toEqual(`\
+┌──────────────────┐
+│hello             │
+│                  │
+│                  │
+└──────────────────┘
+┌──────────────────┐
+│world             │
+│                  │
+│                  │
+└──────────────────┘`);
+
+      let second = decode(term.render(box("universe")).output);
+      expect(print(banner + first + second, 20, 10)).toEqual(`\
+┌──────────────────┐
+│hello             │
+│                  │
+│                  │
+└──────────────────┘
+┌──────────────────┐
+│universe          │
+│                  │
+│                  │
+└──────────────────┘`);
+    });
+  });
 });

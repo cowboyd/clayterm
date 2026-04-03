@@ -63,10 +63,14 @@ static struct InputEvent *emit(struct InputState *st) {
 
 static uint8_t mouse_mods(int b) {
   uint8_t m = 0;
-  if (b & 4) m |= MOD_SHIFT;
-  if (b & 8) m |= MOD_ALT;
-  if (b & 16) m |= MOD_CTRL;
-  if (b & 32) m |= MOD_MOTION;
+  if (b & 4)
+    m |= MOD_SHIFT;
+  if (b & 8)
+    m |= MOD_ALT;
+  if (b & 16)
+    m |= MOD_CTRL;
+  if (b & 32)
+    m |= MOD_MOTION;
   return m;
 }
 
@@ -485,7 +489,8 @@ static int parse_csi_u(struct InputState *st, struct InputEvent *ev) {
     for (int j = off; j < i - 1 && tc < MAX_TEXT_CODEPOINTS; j++) {
       char c = st->buf[j];
       if (c >= '0' && c <= '9') {
-        if (val == -1) val = 0;
+        if (val == -1)
+          val = 0;
         val = val * 10 + (c - '0');
       } else if (c == ':') {
         if (val >= 0)
@@ -504,38 +509,67 @@ static int parse_csi_u(struct InputState *st, struct InputEvent *ev) {
 
 static uint16_t csi_legacy_key(char term, int number) {
   switch (term) {
-  case 'A': return KEY_ARROW_UP;
-  case 'B': return KEY_ARROW_DOWN;
-  case 'C': return KEY_ARROW_RIGHT;
-  case 'D': return KEY_ARROW_LEFT;
-  case 'H': return KEY_HOME;
-  case 'F': return KEY_END;
-  case 'P': return KEY_F1;
-  case 'Q': return KEY_F2;
-  case 'S': return KEY_F4;
+  case 'A':
+    return KEY_ARROW_UP;
+  case 'B':
+    return KEY_ARROW_DOWN;
+  case 'C':
+    return KEY_ARROW_RIGHT;
+  case 'D':
+    return KEY_ARROW_LEFT;
+  case 'H':
+    return KEY_HOME;
+  case 'F':
+    return KEY_END;
+  case 'P':
+    return KEY_F1;
+  case 'Q':
+    return KEY_F2;
+  case 'S':
+    return KEY_F4;
   case '~':
     switch (number) {
-    case 2: return KEY_INSERT;
-    case 3: return KEY_DELETE;
-    case 5: return KEY_PGUP;
-    case 6: return KEY_PGDN;
-    case 7: return KEY_HOME;
-    case 8: return KEY_END;
-    case 11: return KEY_F1;
-    case 12: return KEY_F2;
-    case 13: return KEY_F3;
-    case 14: return KEY_F4;
-    case 15: return KEY_F5;
-    case 17: return KEY_F6;
-    case 18: return KEY_F7;
-    case 19: return KEY_F8;
-    case 20: return KEY_F9;
-    case 21: return KEY_F10;
-    case 23: return KEY_F11;
-    case 24: return KEY_F12;
-    default: return 0;
+    case 2:
+      return KEY_INSERT;
+    case 3:
+      return KEY_DELETE;
+    case 5:
+      return KEY_PGUP;
+    case 6:
+      return KEY_PGDN;
+    case 7:
+      return KEY_HOME;
+    case 8:
+      return KEY_END;
+    case 11:
+      return KEY_F1;
+    case 12:
+      return KEY_F2;
+    case 13:
+      return KEY_F3;
+    case 14:
+      return KEY_F4;
+    case 15:
+      return KEY_F5;
+    case 17:
+      return KEY_F6;
+    case 18:
+      return KEY_F7;
+    case 19:
+      return KEY_F8;
+    case 20:
+      return KEY_F9;
+    case 21:
+      return KEY_F10;
+    case 23:
+      return KEY_F11;
+    case 24:
+      return KEY_F12;
+    default:
+      return 0;
     }
-  default: return 0;
+  default:
+    return 0;
   }
 }
 
@@ -578,8 +612,8 @@ static int parse_csi_legacy(struct InputState *st, struct InputEvent *ev) {
         mod = cur;
       cur = -1;
       sub++;
-    } else if ((c >= 'A' && c <= 'D') || c == 'F' || c == 'H' ||
-               c == 'P' || c == 'Q' || c == 'S' || c == '~') {
+    } else if ((c >= 'A' && c <= 'D') || c == 'F' || c == 'H' || c == 'P' ||
+               c == 'Q' || c == 'S' || c == '~') {
       if (param == 0)
         number = cur;
       else if (param == 1 && sub == 0)

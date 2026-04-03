@@ -4,6 +4,7 @@ import { createTermNative } from "./term-native.ts";
 export interface TermOptions {
   height: number;
   width: number;
+  row?: number;
 }
 
 export interface RenderOptions {
@@ -29,8 +30,8 @@ export interface Term {
 }
 
 export async function createTerm(options: TermOptions): Promise<Term> {
-  let { width, height } = options;
-  let native = await createTermNative(width, height);
+  let { width, height, row = 0 } = options;
+  let native = await createTermNative(width, height, row);
   let { memory, statePtr, opsBuf } = native;
 
   let prev = new Set<string>();

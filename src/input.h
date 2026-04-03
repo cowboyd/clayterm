@@ -69,9 +69,9 @@
 
 /* ── Kitty action types ──────────────────────────────────────────── */
 
-#define ACTION_NONE    0
-#define ACTION_PRESS   1
-#define ACTION_REPEAT  2
+#define ACTION_NONE 0
+#define ACTION_PRESS 1
+#define ACTION_REPEAT 2
 #define ACTION_RELEASE 3
 
 /* ── Key codes ────────────────────────────────────────────────────── */
