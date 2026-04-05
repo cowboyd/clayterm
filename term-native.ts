@@ -9,7 +9,7 @@ export interface Native {
   getPointerOverIds(): string[];
 }
 
-import { compiled } from "./wasm.ts";
+import { getCompiledWasm } from "./wasm.ts";
 
 export async function createTermNative(
   w: number,
@@ -19,7 +19,7 @@ export async function createTermNative(
   let memory = new WebAssembly.Memory({ initial: 2 });
   let exports: Record<string, CallableFunction> = {};
 
-  let instance = await WebAssembly.instantiate(compiled, {
+  let instance = await WebAssembly.instantiate(await getCompiledWasm(), {
     env: { memory },
     clay: {
       measureTextFunction(

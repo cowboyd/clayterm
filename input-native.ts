@@ -169,14 +169,14 @@ export interface InputNative {
   delay(st: number): number;
 }
 
-import { compiled } from "./wasm.ts";
+import { getCompiledWasm } from "./wasm.ts";
 
 export async function createInputNative(
   escLatency: number,
 ): Promise<InputNative> {
   let memory = new WebAssembly.Memory({ initial: 4 });
 
-  let instance = await WebAssembly.instantiate(compiled, {
+  let instance = await WebAssembly.instantiate(await getCompiledWasm(), {
     env: { memory },
     clay: {
       measureTextFunction() {},
