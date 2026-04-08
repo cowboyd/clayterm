@@ -149,9 +149,13 @@ static void emit_ch(struct Clayterm *ct, int x, int y, uint32_t ch) {
   buf_char(&ct->out, ch);
 }
 
-/* ── Double-buffer diff (from termbox2 tb_present) ────────────────── */
-
-static void present(struct Clayterm *ct) {
+/**
+ * Diff back buffer against front buffer and emit only changed cells
+ * using absolute CUP positioning (\x1b[row;colH). Unchanged cells are
+ * skipped, making this efficient for subsequent frames where most of
+ * the screen is static. Derived from termbox2 tb_present.
+ */
+static void present_cups(struct Clayterm *ct) {
   ct->lastx = -1;
   ct->lasty = -1;
 
@@ -191,6 +195,13 @@ static void present(struct Clayterm *ct) {
   }
 }
 
+/**
+ * Emit back buffer as newline-separated rows without CUP positioning.
+ * Every cell is written (no diffing), and the front buffer is primed
+ * so that a subsequent present() call can diff efficiently. This is
+ * used for inline "region" rendering where the caller manages cursor
+ * positioning externally and the output must work in pipes.
+ */
 static void present_lines(struct Clayterm *ct) {
   for (int y = 0; y < ct->h; y++) {
     if (y > 0)
@@ -416,8 +427,11 @@ struct Clayterm *init(void *mem, int w, int h, int row) {
       .lasty = -1,
   };
 
-  cells_clear(ct->front, w, h);
-  cells_clear(ct->back, w, h);
+  // initialize back buffer with spaces and default fg/bg
+  cells_fill(ct->back, w, h, ' ', ATTR_DEFAULT, ATTR_DEFAULT);
+
+  // initialize front buffer with zeros. Every cell will be
+  cells_fill(ct->front, w, h, 0, 0, 0);
   return ct;
 }
 
@@ -551,7 +565,7 @@ void reduce(struct Clayterm *ct, uint32_t *buf, int len, int mode) {
   ct->lastfg = ct->lastbg = 0xffffffff;
   ct->lastx = ct->lasty = -1;
 
-  cells_clear(ct->back, ct->w, ct->h);
+  cells_fill(ct->back, ct->w, ct->h, ' ', ATTR_DEFAULT, ATTR_DEFAULT);
 
   /* walk Clay render commands into back buffer */
   for (int32_t j = 0; j < cmds.length; j++) {
@@ -590,7 +604,7 @@ void reduce(struct Clayterm *ct, uint32_t *buf, int len, int mode) {
   if (mode == 1) {
     present_lines(ct);
   } else {
-    present(ct);
+    present_cups(ct);
   }
 }
 
