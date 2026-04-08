@@ -8,6 +8,7 @@ import type { RenderOptions, RenderResult, Term } from "./term.ts";
 const u8 = Type.Integer({ minimum: 0, maximum: 255 });
 const u16 = Type.Integer({ minimum: 0, maximum: 65535 });
 const u32 = Type.Integer({ minimum: 0, maximum: 0xFFFFFFFF });
+const color = Type.Integer({ minimum: -0x80000000, maximum: 0xFFFFFFFF });
 
 /* ── Sizing axis (discriminated union) ────────────────────────────── */
 
@@ -64,7 +65,7 @@ const CornerRadius = Type.Object({
 });
 
 const Border = Type.Object({
-  color: u32,
+  color: color,
   left: Type.Optional(u8),
   right: Type.Optional(u8),
   top: Type.Optional(u8),
@@ -93,7 +94,7 @@ const OpenElement = Type.Object({
   id: Type.Literal(0x02),
   name: Type.String(),
   layout: Type.Optional(Layout),
-  bg: Type.Optional(u32),
+  bg: Type.Optional(color),
   cornerRadius: Type.Optional(CornerRadius),
   border: Type.Optional(Border),
   clip: Type.Optional(Clip),
@@ -103,7 +104,7 @@ const OpenElement = Type.Object({
 const TextOp = Type.Object({
   id: Type.Literal(0x03),
   content: Type.String(),
-  color: Type.Optional(u32),
+  color: Type.Optional(color),
   fontSize: Type.Optional(u8),
   fontId: Type.Optional(u8),
   wrap: Type.Optional(u8),
