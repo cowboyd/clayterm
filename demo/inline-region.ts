@@ -13,20 +13,23 @@ import {
   close,
   createInput,
   createTerm,
+  CSI,
   type CursorEvent,
+  DSR,
+  ESC,
   fixed,
   grow,
   type Op,
   open,
   rgba,
+  SHOWCURSOR,
   text,
 } from "../mod.ts";
 import { cursor, settings } from "../settings.ts";
 import { validated } from "../validate.ts";
 
-let write = (b: Uint8Array) => Deno.stdout.writeSync(b);
 let encode = (s: string) => new TextEncoder().encode(s);
-let esc = (s: string) => write(encode(s));
+let write = (b: Uint8Array) => Deno.stdout.writeSync(b);
 
 let GREEN = rgba(80, 250, 123);
 let GRAY = rgba(100, 100, 100);
@@ -44,7 +47,7 @@ let BRAILLE = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "�
 
 function* queryCursor(): Operation<CursorEvent> {
   let parser = yield* until(createInput({ escLatency: 100 }));
-  esc("\x1b[6n");
+  write(DSR());
 
   let buf = new Uint8Array(32);
   while (true) {
@@ -67,7 +70,7 @@ function waitKey() {
     for (let i = 0; i < n; i++) {
       if (buf[i] === 0x03) {
         Deno.stdin.setRaw(false);
-        esc("\x1b[?25h");
+        write(SHOWCURSOR());
         Deno.exit(0);
       }
     }
@@ -111,13 +114,13 @@ function* transaction(
 ): Operation<void> {
   let { columns } = Deno.consoleSize();
 
-  esc("\n".repeat(height));
+  write(encode("\n".repeat(height)));
 
   let pos = yield* queryCursor();
   /** 1-based terminal row where the region starts */
-  let row = pos.top - height + 1;
+  let row = pos.row - height + 1;
 
-  esc("\x1b[s");
+  write(ESC("7"));
   let tty = settings(cursor(false));
   write(tty.apply);
 
@@ -131,17 +134,17 @@ function* transaction(
   }
 
   write(tty.revert);
-  esc("\x1b[u");
-  esc("\n");
+  write(ESC("8"));
+  write(encode("\n"));
 }
 
 function say(msg: string) {
-  esc(msg + "\n");
+  write(encode(msg + "\n"));
 }
 
 function pause() {
   waitKey();
-  esc("\n");
+  write(encode("\n"));
 }
 
 await main(function* () {
@@ -157,13 +160,13 @@ await main(function* () {
   say("");
 
   // Demo 1: Spinner box
-  esc("\n\n\n");
+  write(encode("\n\n\n"));
 
   let pos = yield* queryCursor();
   /** 1-based terminal row where the region starts */
-  let row = pos.top - 2;
+  let row = pos.row - 2;
 
-  esc("\x1b[s");
+  write(ESC("7"));
 
   let frames = 30;
   let term = validated(
@@ -195,14 +198,16 @@ await main(function* () {
     yield* sleep(80);
   }
 
-  esc("\x1b[u");
-  esc("\x1b[0m");
-  esc("\n");
+  write(ESC("8"));
+  write(CSI("0m"));
+  write(encode("\n"));
 
   yield* sleep(500);
 
-  esc(
-    "\nRegions can be multi-line, but they can be a single line too. (continue...)",
+  write(
+    encode(
+      "\nRegions can be multi-line, but they can be a single line too. (continue...)",
+    ),
   );
   pause();
 
@@ -251,9 +256,9 @@ await main(function* () {
     50,
   );
 
-  esc("\x1b[0m");
+  write(CSI("0m"));
   yield* sleep(500);
-  esc("\nGoodbye sadness with limitless sky. (continue...)");
+  write(encode("\nGoodbye sadness with limitless sky. (continue...)"));
   pause();
 
   // Demo 3: Nyan cat
@@ -331,7 +336,8 @@ await main(function* () {
     60,
   );
 
-  esc("\x1b[0m\n");
+  write(CSI("0m"));
+  write(encode("\n"));
   write(tty.revert);
   Deno.stdin.setRaw(false);
 });
