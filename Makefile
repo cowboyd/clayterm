@@ -13,7 +13,7 @@ LDFLAGS = -Wl,--no-entry \
           -Wl,--undefined=Clay__MeasureText \
           -Wl,--undefined=Clay__QueryScrollOffset
 
-all: $(TARGET)
+all: $(TARGET) wasm.ts
 	@echo "Built $(TARGET) ($$(wc -c < $(TARGET)) bytes)"
 
 DEPS = $(wildcard src/*.c src/*.h)
@@ -21,7 +21,10 @@ DEPS = $(wildcard src/*.c src/*.h)
 $(TARGET): $(DEPS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(SRC)
 
+wasm.ts: $(TARGET)
+	deno run --allow-read --allow-write tasks/bundle-wasm.ts
+
 clean:
-	rm -f $(TARGET)
+	rm -f $(TARGET) wasm.ts
 
 .PHONY: all clean
