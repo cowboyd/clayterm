@@ -44,4 +44,3 @@ await build({
 });
 
 await Deno.copyFile("README.md", `${outDir}/README.md`);
-await Deno.copyFile("clayterm.wasm", `${outDir}/esm/clayterm.wasm`);

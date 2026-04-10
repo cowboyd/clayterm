@@ -2,26 +2,28 @@
   "name": "@clayterm/clayterm",
   "license": "MIT",
   "tasks": {
-    "test": "deno test --allow-read",
+    "test": "deno test",
     "fmt": "deno fmt && clang-format -i src/*.c src/*.h",
     "fmt:check": "deno fmt --check && clang-format --dry-run --Werror src/*.c src/*.h",
     "build:npm": "deno run -A tasks/build-npm.ts",
     "build:jsr": "deno run -A tasks/build-jsr.ts",
-    "demo": "deno run -A demo/keyboard.ts"
+    "demo": "deno run demo/keyboard.ts"
   },
   "imports": {
     "@std/testing": "jsr:@std/testing@1",
     "@std/expect": "jsr:@std/expect@1",
     "@sinclair/typebox": "npm:@sinclair/typebox@^0.34",
     "dnt": "jsr:@deno/dnt@0.42.3",
-    "effection": "npm:effection@^4.0.2"
+    "effection": "npm:effection@^4.0.2",
+    "@std/encoding": "jsr:@std/encoding@1"
   },
   "exports": {
     ".": "./mod.ts",
     "./validate": "./validate.ts"
   },
   "publish": {
-    "include": ["*.ts", "clayterm.wasm"]
+    "include": ["*.ts"],
+    "exclude": ["!wasm.ts"]
   },
   "fmt": {
     "exclude": ["clay", "build"]
