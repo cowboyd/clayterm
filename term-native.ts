@@ -1,3 +1,10 @@
+export interface ElementBounds {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export interface Native {
   memory: WebAssembly.Memory;
   statePtr: number;
@@ -8,6 +15,7 @@ export interface Native {
   hasActiveTransitions(): boolean;
   setPointer(x: number, y: number, down: boolean): void;
   getPointerOverIds(): string[];
+  getElementBounds(id: string): ElementBounds | undefined;
 }
 
 import { compiled } from "./wasm.ts";
@@ -57,6 +65,7 @@ export async function createTermNative(
     pointer_over_count(): number;
     pointer_over_id_string_length(index: number): number;
     pointer_over_id_string_ptr(index: number): number;
+    element_bounds(ret: number, chars: number, len: number): number;
   };
 
   let heap = ct.__heap_base.value as number;
@@ -100,6 +109,22 @@ export async function createTermNative(
         ids.push(decoder.decode(new Uint8Array(memory.buffer, ptr, len)));
       }
       return ids;
+    },
+    getElementBounds(id: string): ElementBounds | undefined {
+      let encoded = new TextEncoder().encode(id);
+      let ret = opsBuf;
+      let ptr = opsBuf + 16;
+      new Uint8Array(memory.buffer).set(encoded, ptr);
+      if (ct.element_bounds(ret, ptr, encoded.length) === 0) {
+        return undefined;
+      }
+      let view = new DataView(memory.buffer);
+      return {
+        x: view.getFloat32(ret, true),
+        y: view.getFloat32(ret + 4, true),
+        width: view.getFloat32(ret + 8, true),
+        height: view.getFloat32(ret + 12, true),
+      };
     },
   };
 }

@@ -21,5 +21,6 @@ int pointer_over_count(void);
 int pointer_over_id_string_length(int index);
 int pointer_over_id_string_ptr(int index);
 int has_active_transitions(void);
+int element_bounds(int ret, int chars, int len);
 
 #endif

@@ -169,5 +169,8 @@ export function validated(term: Term): Term {
       assert(ops);
       return term.render(ops, options);
     },
+    getElementBounds(id: string) {
+      return term.getElementBounds(id);
+    },
   };
 }

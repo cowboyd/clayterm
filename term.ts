@@ -1,5 +1,7 @@
 import { type Op, pack } from "./ops.ts";
-import { createTermNative } from "./term-native.ts";
+import { createTermNative, type ElementBounds } from "./term-native.ts";
+
+export type { ElementBounds } from "./term-native.ts";
 
 export interface TermOptions {
   height: number;
@@ -29,6 +31,7 @@ export interface RenderResult {
 
 export interface Term {
   render(ops: Op[], options?: RenderOptions): RenderResult;
+  getElementBounds(id: string): ElementBounds | undefined;
 }
 
 export async function createTerm(options: TermOptions): Promise<Term> {
@@ -97,6 +100,9 @@ export async function createTerm(options: TermOptions): Promise<Term> {
       wasDown = down;
 
       return { output, events, hasActiveTransitions };
+    },
+    getElementBounds(id: string): ElementBounds | undefined {
+      return native.getElementBounds(id);
     },
   };
 }

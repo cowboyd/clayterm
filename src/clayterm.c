@@ -722,6 +722,17 @@ int has_active_transitions(void) {
   return 0;
 }
 
+int element_bounds(int ret, int chars, int len) {
+  Clay_String id = {.length = len, .chars = (const char *)chars};
+  Clay_ElementData data = Clay_GetElementData(Clay_GetElementId(id));
+  float *dims = (float *)ret;
+  dims[0] = data.boundingBox.x;
+  dims[1] = data.boundingBox.y;
+  dims[2] = data.boundingBox.width;
+  dims[3] = data.boundingBox.height;
+  return data.found ? 1 : 0;
+}
+
 void measure(int ret, int txt) {
   /* Read Clay_StringSlice from txt address.
    * Clay_StringSlice layout: { int32_t length, const char *chars, ... }
