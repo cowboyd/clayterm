@@ -70,6 +70,21 @@ describe("C.RESIZE — resize", () => {
     expect(v.anchorSubRow).toBe(1);
   });
 
+  it("C.RESIZE.anchor-subrow-clamped-exact — uses exact wrapping for clamp, not estimate", () => {
+    let v = new Virtualizer({ measureWidth: charMeasure, columns: 3, rows: 24 });
+    // "文" is width 2. At columns=3: 1 fits per row (2+2=4 > 3) → 10 exact sub-rows
+    // estimate = ceil(20/3) = 7
+    v.appendLine("文".repeat(10));
+    v.scrollBy(8); // anchorSubRow = 8 (valid in exact range 0-9)
+    expect(v.anchorSubRow).toBe(8);
+
+    // Resize to columns=5: 2 chars fit per row (2+2=4 ≤ 5) → 5 exact sub-rows
+    // estimate = ceil(20/5) = 4
+    // Should clamp to exact(5)-1 = 4, not estimate(4)-1 = 3
+    v.resize(5, 24);
+    expect(v.anchorSubRow).toBe(4);
+  });
+
   it("C.RESIZE.bottom-follow-preserved — isAtBottom survives resize", () => {
     let v = new Virtualizer({ measureWidth: charMeasure, columns: 80, rows: 24 });
     v.appendLine("hello");

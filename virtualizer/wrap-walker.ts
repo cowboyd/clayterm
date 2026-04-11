@@ -53,7 +53,7 @@ export function computeWrapPoints(
     let charLen = cp > 0xffff ? 2 : 1;
     let w = measureWidth(String.fromCodePoint(cp));
 
-    if (w > 0 && col + w > columns) {
+    if (col > 0 && col + w > columns) {
       wrapPoints.push(i);
       col = 0;
     }

@@ -81,4 +81,16 @@ describe("G.WRAP — wrapping golden fixtures", () => {
     expect(entry.wrapPoints).toEqual([]);
     expect(entry.totalSubRows).toBe(1);
   });
+
+  it("G.WRAP.wide-char-wider-than-columns — no wrap point at 0", () => {
+    let entry = resolve("文", 1);
+    expect(entry.wrapPoints).toEqual([]);
+    expect(entry.totalSubRows).toBe(1);
+  });
+
+  it("G.WRAP.multiple-wide-chars-at-columns-one — each on own row", () => {
+    let entry = resolve("文字", 1);
+    expect(entry.wrapPoints).toEqual([1]);
+    expect(entry.totalSubRows).toBe(2);
+  });
 });

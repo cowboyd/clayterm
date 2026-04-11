@@ -115,4 +115,14 @@ describe("C.SCROLL — scrollBy", () => {
       prev = v.currentEstimatedVisualRow;
     }
   });
+
+  it("C.ESTIMATE.current-within-total — holds when exact wraps exceed estimate", () => {
+    let v = new Virtualizer({ measureWidth: charMeasure, columns: 3, rows: 24 });
+    // "文" is width 2. At columns=3: 1 per row → 10 exact sub-rows
+    // estimate = ceil(20/3) = 7
+    v.appendLine("文".repeat(10));
+    v.scrollBy(9); // scroll to last exact sub-row
+    expect(v.currentEstimatedVisualRow).toBeGreaterThanOrEqual(0);
+    expect(v.currentEstimatedVisualRow).toBeLessThan(v.totalEstimatedVisualRows);
+  });
 });

@@ -157,18 +157,19 @@ export class Virtualizer {
       }
       this._totalEstimatedVisualRows = newTotal;
 
-      // Clamp anchor sub-row at new width
+      this._columns = columns;
+
+      // Clamp anchor sub-row using exact wrap count at new width
       if (this._ringBuffer.lineCount > 0) {
         let anchorEntry = this._ringBuffer.get(this._anchorLineIndex);
         if (anchorEntry) {
-          let newEstimate = Math.max(1, Math.ceil(anchorEntry.displayWidth / columns));
-          if (this._anchorSubRow >= newEstimate) {
-            this._anchorSubRow = newEstimate - 1;
+          let wrapPoints = this._getWrapPoints(this._anchorLineIndex, anchorEntry.text);
+          let exactSubRows = wrapPoints.length + 1;
+          if (this._anchorSubRow >= exactSubRows) {
+            this._anchorSubRow = exactSubRows - 1;
           }
         }
       }
-
-      this._columns = columns;
 
       // Recompute currentEstimatedVisualRow
       this._recomputeCurrentEstimate();
@@ -318,7 +319,10 @@ export class Virtualizer {
       estimate += this._estimateVisualRows(entry.displayWidth);
     }
     estimate += this._anchorSubRow;
-    this._currentEstimatedVisualRow = estimate;
+    this._currentEstimatedVisualRow = Math.min(
+      estimate,
+      Math.max(this._totalEstimatedVisualRows - 1, 0),
+    );
   }
 
   getLineDisplayWidth(lineIndex: number): number | undefined {
