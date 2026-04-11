@@ -82,13 +82,18 @@ describe("G.WRAP — wrapping golden fixtures", () => {
     expect(entry.totalSubRows).toBe(1);
   });
 
-  it("G.WRAP.wide-char-wider-than-columns — no wrap point at 0", () => {
+  // The following two tests document behavior when columns < max glyph
+  // width, which is an unsupported configuration.  Individual glyphs may
+  // overflow their sub-row; the O-9 invariant does not apply.  See the
+  // JSDoc on VirtualizerOptions.columns.
+
+  it("G.WRAP.wide-char-wider-than-columns — unsupported: glyph overflows, no wrap at 0", () => {
     let entry = resolve("文", 1);
     expect(entry.wrapPoints).toEqual([]);
     expect(entry.totalSubRows).toBe(1);
   });
 
-  it("G.WRAP.multiple-wide-chars-at-columns-one — each on own row", () => {
+  it("G.WRAP.multiple-wide-chars-at-columns-one — unsupported: each glyph gets own row", () => {
     let entry = resolve("文字", 1);
     expect(entry.wrapPoints).toEqual([1]);
     expect(entry.totalSubRows).toBe(2);

@@ -119,4 +119,23 @@ describe("C.EVICT — basic eviction (non-scroll subset)", () => {
     v.appendLine("D"); // evicts A(0), anchor clamped to 1
     expect(v.currentEstimatedVisualRow).toBe(0);
   });
+
+  it("R.EVICT.maxLines1-not-at-bottom — anchor clamps to surviving line when isAtBottom is false", () => {
+    let v = new Virtualizer({ measureWidth: charMeasure, columns: 80, rows: 24, maxLines: 1 });
+    v.appendLine("A"); // lineIndex 0, anchor 0, isAtBottom true
+    v.scrollBy(-1);    // isAtBottom false, anchor still 0
+    expect(v.isAtBottom).toBe(false);
+
+    v.appendLine("B"); // evicts A(0), inserts B(1)
+    // Anchor must clamp to the surviving line (1), not stay on evicted (0)
+    expect(v.anchorLineIndex).toBe(1);
+    expect(v.anchorSubRow).toBe(0);
+    expect(v.lineCount).toBe(1);
+
+    // resolveViewport must return the surviving line, not empty
+    let vp = v.resolveViewport();
+    expect(vp.entries.length).toBe(1);
+    expect(vp.entries[0].lineIndex).toBe(1);
+    expect(vp.entries[0].text).toBe("B");
+  });
 });

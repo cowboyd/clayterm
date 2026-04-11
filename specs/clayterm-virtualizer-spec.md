@@ -216,10 +216,16 @@ The current test suite checks the following output invariants through public API
 - `totalSubRows === wrapPoints.length + 1`
 - `firstSubRow` and `visibleSubRows` stay within bounds
 - total visible sub-rows do not exceed the viewport row budget
-- every visible slice fits within `columns`
+- every visible slice fits within `columns` (when `columns` ≥ the maximum single-glyph width returned by `measureWidth`; see §8)
 - output can be reconstructed from `text + wrapPoints`
 
 ## 8. Current Implementation Notes And Known Gaps
+
+### Columns ≥ max glyph width precondition
+
+`columns` must be at least as wide as the widest single glyph that `measureWidth` can return. With a standard `wcwidth`-based provider, CJK ideographs are width 2, so `columns` must be ≥ 2. When this precondition is violated (e.g. `columns: 1` with CJK text), the wrapping algorithm cannot split a single glyph and it overflows its sub-row. The O-9 invariant ("every visible slice fits within `columns`") does not hold in that case. The wrap-golden test suite documents the overflow behavior for reference but the configuration is unsupported.
+
+### Other notes
 
 These notes document the current branch shape rather than defining desired future contract.
 

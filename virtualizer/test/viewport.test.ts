@@ -146,9 +146,10 @@ describe("C.VIEWPORT — resolveViewport output invariants", () => {
     expect(totalVisible).toBeLessThanOrEqual(5);
   });
 
-  it("C.VIEWPORT.sliced-width-within-columns — each sub-row fits within columns", () => {
+  it("C.VIEWPORT.sliced-width-within-columns — each sub-row fits within columns (requires columns ≥ max glyph width)", () => {
     let v = makeVirtualizer(10, 24);
     v.appendLine("abcdefghijklmnopqrstuvwxyz");
+    v.appendLine("abc文def字ghi"); // includes width-2 CJK glyphs
     let vp = v.resolveViewport();
     for (let entry of vp.entries) {
       let slices = sliceAtWrapPoints(entry.text, entry.wrapPoints);

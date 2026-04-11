@@ -105,13 +105,12 @@ export class Virtualizer {
       if (this._anchorLineIndex > evictedLineIndex) {
         this._currentEstimatedVisualRow -= evictedEstimate;
       } else if (this._anchorLineIndex === evictedLineIndex) {
-        if (this._ringBuffer.lineCount > 1) {
-          // Clamp anchor to next line
-          this._anchorLineIndex = evictedLineIndex + 1;
-          this._anchorSubRow = 0;
-          this._currentEstimatedVisualRow = 0;
-        }
-        // If lineCount === 1 (maxLines=1): transient empty, resolved by step 3
+        // Clamp anchor to the next surviving line. For maxLines=1 this
+        // pre-targets the line about to be inserted in step 3, whose
+        // lineIndex is always evictedLineIndex + 1 (monotonic counter).
+        this._anchorLineIndex = evictedLineIndex + 1;
+        this._anchorSubRow = 0;
+        this._currentEstimatedVisualRow = 0;
       }
     }
 
