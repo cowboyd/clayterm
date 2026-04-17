@@ -1,4 +1,4 @@
-# Clayterm Current-State Specification
+# Clayterm Renderer Specification
 
 **Version:** 0.1 (draft) **Status:** Current-state specification. Normative for
 the rendering contract. Descriptive for settling surfaces.
@@ -19,9 +19,11 @@ project without destabilizing the core.
 
 This specification does not attempt to define areas of Clayterm that are still
 settling. Where the project has working but evolving surfaces — including the
-input parsing API, pointer event model, and certain wrapper types — those are
-described in Section 12 as current implementation rather than normative
-contract.
+pointer event model and certain wrapper types — those are described in Section
+12 as current implementation rather than normative contract.
+
+Input parsing is specified separately in the
+[Clayterm Input Specification](input-spec.md).
 
 ---
 
@@ -41,7 +43,7 @@ contract.
 - Current implementation surfaces that are settling but not yet stable enough to
   freeze (Section 12)
 - Implementation notes that aid understanding but do not define contract
-  (Section 14)
+  (Section 13)
 
 ### Out of scope
 
@@ -52,6 +54,7 @@ contract.
 - Higher-level UI framework concerns (e.g., component lifecycle, reconciliation)
 - Demo applications
 - The crankterm project or any specific framework built on Clayterm
+- Input parsing (see [Clayterm Input Specification](input-spec.md))
 
 ---
 
@@ -340,10 +343,10 @@ for each changed cell. Only cells that differ from the previous frame are
 emitted, making this efficient for full-screen UIs where most of the screen is
 static between frames.
 
-The optional `row` parameter specifies a 1-based row offset for CUP
-positioning. This allows the caller to render into a region of the terminal
-starting at a row other than the top. The offset is applied to all emitted
-cursor positions. When omitted, it defaults to 1.
+The optional `row` parameter specifies a 1-based row offset for CUP positioning.
+This allows the caller to render into a region of the terminal starting at a row
+other than the top. The offset is applied to all emitted cursor positions. When
+omitted, it defaults to 1.
 
 #### 8.2.2 Line mode
 
@@ -551,18 +554,14 @@ caller's.
 ### 11.4 The renderer does not own input parsing
 
 Input parsing (keyboard events, mouse events, escape sequence decoding) is an
-independent concern. It is not part of the rendering contract defined by this
-specification. The renderer MUST NOT depend on input-parsing state, types, or
-API.
-
-Clayterm currently provides input-parsing functionality alongside the renderer
-in the same package. This co-location is an implementation detail, not an
-architectural coupling. Section 12.4 describes the current input surface.
+independent concern specified separately in the
+[Clayterm Input Specification](input-spec.md). The renderer MUST NOT depend on
+input-parsing state, types, or API.
 
 However, pointer hit detection does require the render loop to participate. The
 caller may pass the current pointer position as part of render options, and the
 renderer returns the ids of every element the pointer is over. This is how the
-`PointerEvent[]` array in the render result is populated. See Section 12.5 for
+`PointerEvent[]` array in the render result is populated. See Section 12.4 for
 the current pointer event surface.
 
 ### 11.5 The renderer does not own higher-level framework concerns
@@ -649,68 +648,31 @@ The `events` field contains pointer events (enter, leave, click) derived from
 the underlying layout engine's element hit-testing. This field was added during
 a pointer-events feature implementation. The pointer event model is functional
 but has acknowledged gaps (no modifier keys on click events) and its interaction
-protocol (calling `setPointer(x, y, down)` before rendering, then reading events
-from the return value) was arrived at through iteration rather than upfront
-design.
+protocol (passing pointer state via render options, then reading events from the
+return value) was arrived at through iteration rather than upfront design.
 
 The return type of `render()` has changed twice since the project's inception
 (string, then `Uint8Array`, then `RenderResult`). While the ANSI bytes
 commitment (Section 7.3) is stable, the wrapper shape around those bytes is not.
 Future versions may restructure the return type.
 
-### 12.4 Input parsing surface
-
-Clayterm currently provides terminal input parsing alongside the renderer. The
-input API was designed by the project lead and has clear design intent, but it
-has undergone more revision than the rendering core and faces known upcoming
-forces that will reshape it (Kitty progressive enhancement field surfacing,
-terminfo binary parsing, possible package separation).
-
-The current input surface includes:
-
-**`createInput(options?): Promise<Input>`** — Creates an input parser instance.
-Options currently include `escLatency` (milliseconds to wait before resolving a
-lone ESC byte as the Escape key, default 25ms) and `terminfo` (a `Uint8Array` of
-raw terminfo binary, accepted but with C-side parsing not yet implemented).
-
-**`input.scan(bytes?): ScanResult`** — Feeds raw terminal bytes into the parser
-and returns parsed events. The `bytes` parameter is optional; calling without
-arguments triggers a rescan for ESC timeout resolution.
-
-**`ScanResult`** — Currently shaped as
-`{ events: InputEvent[], pending?: { delay: number, deadline: number } }`. The
-`events` array contains parsed events. The `pending` field, when present,
-indicates that an ambiguous ESC byte is buffered and provides both a relative
-delay and an absolute deadline for the caller to schedule a rescan.
-
-**`InputEvent` discriminated union** — Currently discriminated on a `type` field
-with these variants: `CharEvent` (insertable character), `KeyEvent`
-(special/control key), `MouseEvent` (button press/release), `DragEvent` (motion
-with button held), `WheelEvent` (scroll tick), `ResizeEvent`. The discriminant
-values and the type splits are deliberate design decisions. However, the field
-sets within each variant are expected to grow when Kitty progressive enhancement
-types are surfaced in the TypeScript layer (the C struct has already been
-extended with fields that are not yet mapped to the TS types).
-
-The input API is architecturally independent from the renderer (see INV-8).
-Whether it remains in the same package or becomes a separate module is an open
-question.
-
-### 12.5 Pointer event model
+### 12.4 Pointer event model
 
 Clayterm currently supports pointer hit-testing via the underlying layout
-engine's element-identification mechanism. The current surface includes:
+engine's element-identification mechanism. The caller passes pointer state
+(`{ x, y, down }`) as part of render options, and the renderer returns pointer
+events as part of the render result:
 
-- `setPointer(x, y, down)` — sets the pointer position and button state for the
-  next render
-- Pointer events returned as part of `RenderResult.events`: `pointerenter`,
-  `pointerleave`, `pointerclick`
+- `pointerenter` — the pointer has entered an element's bounding box
+- `pointerleave` — the pointer has left an element's bounding box
+- `pointerclick` — a pointer-up occurred over an element that was also under the
+  pointer at pointer-down
 
 This surface is functional but should not be treated as stable contract. The
 calling convention was discovered through iteration, the event model has
 acknowledged gaps, and the approach may evolve.
 
-### 12.6 Validation and packing
+### 12.5 Validation and packing
 
 **`validate(ops)`** — A public API function that checks a directive array for
 structural errors (unbalanced open/close pairs, invalid field types). Exported
@@ -722,37 +684,7 @@ but not public API; its exposure is incidental to the module structure.
 
 ---
 
-## 13. Deferred / Future Areas
-
-_This section is non-normative. These topics are explicitly excluded from this
-specification. Their omission is intentional, not an oversight._
-
-**Scroll container API.** The underlying layout engine supports scroll
-containers. No TypeScript-side API exists for providing scroll state to the
-renderer.
-
-**Full Kitty progressive enhancement event types.** The C-side input parser
-struct has been extended for progressive enhancement fields. The TypeScript
-event types have not been updated to surface them.
-
-**Terminfo binary parsing.** The input API accepts a `terminfo` option, but
-C-side parsing is not implemented.
-
-**CSI helper for terminal setup.** A helper for generating paired apply/rollback
-byte arrays for terminal mode configuration was discussed but not implemented.
-
-**Browser-specific adapter.** The renderer's zero-IO architecture makes browser
-portability possible. No adapter exists.
-
-**`betweenChildren` border support.** The underlying layout engine supports
-this. It is not exposed in the directive model.
-
-**Whether input parsing should be a separate package.** Architecturally
-independent (INV-8) but currently co-located. The distribution decision is open.
-
----
-
-## 14. Implementation Notes
+## 13. Implementation Notes
 
 _This section is non-normative. These notes describe current implementation
 details that aid understanding but do not define contract. They may change
@@ -764,9 +696,6 @@ input-parsing functionality; they share a binary but maintain independent state.
 
 **WASM loading.** The WASM binary is inlined as a base64-encoded string in a
 generated module and instantiated per Term or Input with fresh memory.
-
-**WASM co-location.** The WASM binary file is expected to be co-located with the
-JavaScript module files. Both JSR and npm package builds include the artifact.
 
 **Memory layout.** WASM linear memory is initialized with 256 pages (16MB). The
 renderer state struct and the transfer buffer are allocated in WASM linear
@@ -791,6 +720,26 @@ junction glyphs in a post-render pass.
 
 ---
 
+## 14. Deferred / Future Areas
+
+_This section is non-normative. These topics are explicitly excluded from this
+specification. Their omission is intentional, not an oversight._
+
+**Scroll container API.** The underlying layout engine supports scroll
+containers. No TypeScript-side API exists for providing scroll state to the
+renderer.
+
+**CSI helper for terminal setup.** A helper for generating paired apply/rollback
+byte arrays for terminal mode configuration was discussed but not implemented.
+
+**Browser-specific adapter.** The renderer's zero-IO architecture makes browser
+portability possible. No adapter exists.
+
+**`betweenChildren` border support.** The underlying layout engine supports
+this. It is not exposed in the directive model.
+
+---
+
 ## Appendix A. Confidence Notes
 
 ### Why the rendering core is specified more aggressively than other surfaces
@@ -804,13 +753,6 @@ integration without revision to its fundamental shapes. Its key abstractions
 over explicitly rejected alternatives (per-element FFI, protobuf, builder
 pattern, string output). This level of stability and intentionality justifies
 normative specification.
-
-The input API arrived later, has been through significantly more design churn
-(rejected first draft, iterative event type splits, naming changes, ongoing
-Kitty progressive enhancement design), and faces known upcoming forces that will
-reshape it. It has clear design ownership from the project lead, which
-distinguishes it from purely implementation-driven features like the pointer
-event model, but design ownership is not the same as contract readiness.
 
 The pointer event model and render return wrapper are the least settled of the
 currently shipping features. Both were introduced during feature implementation
@@ -849,36 +791,24 @@ resolution.
    detection is intrinsic to the renderer or should be a separate concern is
    unresolved.
 
-3. **Is the input API part of the Clayterm specification?** This specification
-   describes it in Section 12.4 but does not specify it normatively. The input
-   API may become a separate package or specification.
-
-4. **Is `pack()` public API?** `pack()` is currently exported but is an internal
+3. **Is `pack()` public API?** `pack()` is currently exported but is an internal
    implementation detail, not public API. `validate()` is public API.
 
-5. **What are the normative Kitty progressive enhancement event types?** The
-   C-side struct has been extended. The TypeScript types have not been updated.
-   This specification does not attempt to predict the final shapes.
-
-6. **How should border widths interact with layout?** The current behavior
+4. **How should border widths interact with layout?** The current behavior
    (borders do not affect layout) is inherited from the underlying layout
    engine. The project has questioned whether this is the right design. This
    specification describes the current behavior in Section 12.2 without
    committing to it.
 
-7. **Should the rendering and input concerns be distributed as separate
-   packages?** They are architecturally independent (INV-8) but currently
-   co-located.
-
-8. **What are the specific transfer encoding details?** The encoding structure
+5. **What are the specific transfer encoding details?** The encoding structure
    is described in Section 12.1 as current implementation surface. Locking down
    opcode values would constrain future extensions unnecessarily.
 
-9. **What is the complete set of directive properties?** The property groups
+6. **What is the complete set of directive properties?** The property groups
    available in `open()` and `text()` are described in Section 12.2 as current
    implementation surface. They have been extended incrementally and will
    continue to grow.
 
-10. **What are the validation and error semantics?** How the renderer responds
-    to invalid input is unspecified. Callers SHOULD validate, but the validation
-    model is not yet settled enough to define normatively.
+7. **What are the validation and error semantics?** How the renderer responds to
+   invalid input is unspecified. Callers SHOULD validate, but the validation
+   model is not yet settled enough to define normatively.
