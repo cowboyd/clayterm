@@ -12,12 +12,15 @@
  */
 
 #include "clayterm.h"
+#include "transitions.h"
 #include "../clay/clay.h"
 #include "buffer.h"
 #include "cell.h"
 #include "mem.h"
 #include "utf8.h"
 #include "wcwidth.h"
+
+struct Clayterm *ct_active_context = NULL;
 
 /* ── Command buffer protocol ──────────────────────────────────────── */
 
@@ -33,6 +36,7 @@
 #define PROP_BORDER 0x08
 #define PROP_CLIP 0x10
 #define PROP_FLOATING 0x20
+#define PROP_TRANSITION 0x40
 
 /* ── Instance state ───────────────────────────────────────────────── */
 
@@ -470,6 +474,7 @@ struct Clayterm *init(void *mem, int w, int h) {
 
 void reduce(struct Clayterm *ct, uint32_t *buf, int len, int mode, int row, float deltaTime) {
   int i = 0;
+  ct_active_context = ct;
   ct->error_count = 0;
   ct->animating_count = 0;
 
@@ -557,6 +562,21 @@ void reduce(struct Clayterm *ct, uint32_t *buf, int len, int mode, int row, floa
         decl.floating.zIndex = (int16_t)((fc >> 24) & 0xff);
       }
 
+      if (mask & PROP_TRANSITION) {
+        float duration = rdf(buf, len, &i);
+        uint32_t props_and_flags = rd(buf, len, &i);
+        uint16_t props = props_and_flags & 0xFFFF;
+        uint8_t easing = (props_and_flags >> 16) & 0xFF;
+        uint8_t interactive = (props_and_flags >> 24) & 0xFF;
+
+        decl.transition.handler = ct_handler_for(easing);
+        decl.transition.duration = duration;
+        decl.transition.properties = (Clay_TransitionProperty)props;
+        decl.transition.interactionHandling = interactive
+          ? CLAY_TRANSITION_ALLOW_INTERACTIONS_WHILE_TRANSITIONING_POSITION
+          : CLAY_TRANSITION_DISABLE_INTERACTIONS_WHILE_TRANSITIONING_POSITION;
+      }
+
       Clay__ConfigureOpenElement(decl);
       break;
     }
@@ -640,6 +660,8 @@ void reduce(struct Clayterm *ct, uint32_t *buf, int len, int mode, int row, floa
   } else {
     present_cups(ct, row);
   }
+
+  ct_active_context = NULL;
 }
 
 char *output(struct Clayterm *ct) { return ct->out.data; }
