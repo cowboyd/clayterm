@@ -25,6 +25,7 @@ export interface RenderOptions {
     y: number;
     down: boolean;
   };
+  deltaTime?: number;
 }
 
 export type PointerEvent =
@@ -78,13 +79,24 @@ export async function createTerm(options: TermOptions): Promise<Term> {
   let prev = new Set<string>();
   let pressed = new Set<string>();
   let wasDown = false;
+  let lastRenderAt: number | undefined;
 
   return {
     render(ops: Op[], options?: RenderOptions): RenderResult {
       let len = pack(ops, memory.buffer, opsBuf, memory.buffer.byteLength);
       let mode = options?.mode === "line" ? 1 : 0;
       let row = options?.row ?? 1;
-      native.reduce(statePtr, opsBuf, len, mode, row);
+      let now = performance.now() / 1000;
+      let dt: number;
+      if (options?.deltaTime !== undefined) {
+        dt = options.deltaTime;
+      } else if (lastRenderAt === undefined) {
+        dt = 0;
+      } else {
+        dt = now - lastRenderAt;
+      }
+      lastRenderAt = now;
+      native.reduce(statePtr, opsBuf, len, mode, row, dt);
 
       if (options?.pointer) {
         let { x, y, down } = options.pointer;
