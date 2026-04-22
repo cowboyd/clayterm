@@ -467,7 +467,7 @@ struct Clayterm *init(void *mem, int w, int h) {
   return ct;
 }
 
-void reduce(struct Clayterm *ct, uint32_t *buf, int len, int mode, int row) {
+void reduce(struct Clayterm *ct, uint32_t *buf, int len, int mode, int row, float deltaTime) {
   int i = 0;
   ct->error_count = 0;
 
@@ -590,7 +590,7 @@ void reduce(struct Clayterm *ct, uint32_t *buf, int len, int mode, int row) {
     }
   }
 
-  Clay_RenderCommandArray cmds = Clay_EndLayout(0.0f);
+  Clay_RenderCommandArray cmds = Clay_EndLayout(deltaTime);
 
   /* reset output state */
   ct->out.length = 0;
