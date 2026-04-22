@@ -65,6 +65,7 @@ export interface RenderResult {
   events: PointerEvent[];
   info: RenderInfo;
   errors: ClayError[];
+  animating: boolean;
 }
 
 export interface Term {
@@ -164,7 +165,7 @@ export async function createTerm(options: TermOptions): Promise<Term> {
         });
       }
 
-      return { output, events, info, errors };
+      return { output, events, info, errors, animating: native.animating(statePtr) > 0 };
     },
   };
 }
