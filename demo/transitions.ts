@@ -108,7 +108,7 @@ function view(state: State): Op[] {
       },
       bg: state.menuOpen ? SIDEBAR_BG_OPEN : SIDEBAR_BG_CLOSED,
       transition: {
-        duration: 0.25,
+        duration: 0.2,
         easing: "easeInOut",
         properties: ["width", "bg"],
       },

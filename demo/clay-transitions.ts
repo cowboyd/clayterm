@@ -93,7 +93,6 @@ const HOVER_LIGHTEN = 0.35;
 
 const ROOT_BG = rgba(18, 18, 22);
 const TOPBAR_BG = rgba(40, 40, 55);
-const MODELINE_BG = rgba(30, 30, 45);
 const BTN_DEFAULT = rgba(60, 60, 80);
 const BTN_HOVER = rgba(90, 90, 120);
 const KEY_COLOR = rgba(255, 220, 120);
@@ -243,8 +242,8 @@ function view(state: State): Op[] {
           },
           bg,
           transition: {
-            duration: 0.5,
-            easing: "easeOut",
+            duration: 0.4,
+            easing: "easeInOut",
             properties: ["width", "position", "bg"],
             interactive: true,
           },
@@ -259,32 +258,6 @@ function view(state: State): Op[] {
 
   ops.push(close());
 
-  ops.push(
-    open("modeline", {
-      layout: {
-        width: grow(),
-        height: fixed(1),
-        direction: "ltr",
-        padding: { left: 1, right: 1 },
-        gap: 2,
-      },
-      bg: MODELINE_BG,
-    }),
-    open("ml:s", { layout: { direction: "ltr", gap: 0 } }),
-    text("s", { color: KEY_COLOR }),
-    text(" shuffle", { color: LABEL_COLOR }),
-    close(),
-    open("ml:c", { layout: { direction: "ltr", gap: 0 } }),
-    text("c", { color: KEY_COLOR }),
-    text(" recolor", { color: LABEL_COLOR }),
-    close(),
-    open("ml:q", { layout: { direction: "ltr", gap: 0 } }),
-    text("q", { color: KEY_COLOR }),
-    text(" quit", { color: LABEL_COLOR }),
-    close(),
-    close(),
-  );
-
   ops.push(close());
 
   return ops;
@@ -296,7 +269,7 @@ function ticker(flag: { animating: boolean }): Stream<void, void> {
     yield* spawn(function* () {
       while (true) {
         if (flag.animating) {
-          yield* sleep(16);
+          yield* sleep(2);
           yield* ch.send();
         } else {
           yield* sleep(50);
