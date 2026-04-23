@@ -1,5 +1,5 @@
 import { describe, expect, it } from "./suite.ts";
-import { close, createTerm, fixed, grow, type Op, open, rgba } from "../mod.ts";
+import { close, createTerm, fixed, type Op, open, rgba } from "../mod.ts";
 
 describe("transition lifecycle", () => {
   it("animates bg change between frames", async () => {
