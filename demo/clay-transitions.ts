@@ -231,7 +231,7 @@ function view(state: State): Op[] {
       let b = boxes[i];
       let bid = `box:${b.id}`;
       let hov = state.entered.has(bid);
-      let bg = hov ? lighten(b.color, HOVER_LIGHTEN) : b.color;
+      let borderColor = hov ? lighten(b.color, HOVER_LIGHTEN) : b.color;
       ops.push(
         open(bid, {
           layout: {
@@ -240,15 +240,21 @@ function view(state: State): Op[] {
             alignX: 2,
             alignY: 2,
           },
-          bg,
+          border: {
+            color: borderColor,
+            left: 1,
+            right: 1,
+            top: 1,
+            bottom: 1,
+          },
           transition: {
             duration: 0.4,
             easing: "easeInOut",
-            properties: ["width", "position", "bg"],
+            properties: ["width", "position", "borderColor"],
             interactive: true,
           },
         }),
-        text(`${b.id < 10 ? "0" : ""}${b.id}`, { color: LABEL_COLOR }),
+        text(`${b.id < 10 ? "0" : ""}${b.id}`, { color: b.color }),
         close(),
       );
     }
