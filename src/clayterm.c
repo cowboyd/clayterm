@@ -472,7 +472,8 @@ struct Clayterm *init(void *mem, int w, int h) {
   return ct;
 }
 
-void reduce(struct Clayterm *ct, uint32_t *buf, int len, int mode, int row, float deltaTime) {
+void reduce(struct Clayterm *ct, uint32_t *buf, int len, int mode, int row,
+            float deltaTime) {
   int i = 0;
   ct_active_context = ct;
   ct->error_count = 0;
@@ -572,9 +573,10 @@ void reduce(struct Clayterm *ct, uint32_t *buf, int len, int mode, int row, floa
         decl.transition.handler = ct_handler_for(easing);
         decl.transition.duration = duration;
         decl.transition.properties = (Clay_TransitionProperty)props;
-        decl.transition.interactionHandling = interactive
-          ? CLAY_TRANSITION_ALLOW_INTERACTIONS_WHILE_TRANSITIONING_POSITION
-          : CLAY_TRANSITION_DISABLE_INTERACTIONS_WHILE_TRANSITIONING_POSITION;
+        decl.transition.interactionHandling =
+            interactive
+                ? CLAY_TRANSITION_ALLOW_INTERACTIONS_WHILE_TRANSITIONING_POSITION
+                : CLAY_TRANSITION_DISABLE_INTERACTIONS_WHILE_TRANSITIONING_POSITION;
       }
 
       Clay__ConfigureOpenElement(decl);

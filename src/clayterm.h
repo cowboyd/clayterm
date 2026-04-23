@@ -12,7 +12,8 @@ struct Clayterm;
 /* WASM exports */
 int clayterm_size(int w, int h);
 struct Clayterm *init(void *mem, int w, int h);
-void reduce(struct Clayterm *ct, uint32_t *buf, int len, int mode, int row, float deltaTime);
+void reduce(struct Clayterm *ct, uint32_t *buf, int len, int mode, int row,
+            float deltaTime);
 char *output(struct Clayterm *ct);
 int length(struct Clayterm *ct);
 int animating(struct Clayterm *ct);

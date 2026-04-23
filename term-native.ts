@@ -20,7 +20,14 @@ export interface Native {
   memory: WebAssembly.Memory;
   statePtr: number;
   opsBuf: number;
-  reduce(ct: number, buf: number, len: number, mode: number, row: number, deltaTime: number): void;
+  reduce(
+    ct: number,
+    buf: number,
+    len: number,
+    mode: number,
+    row: number,
+    deltaTime: number,
+  ): void;
   output(ct: number): number;
   length(ct: number): number;
   setPointer(x: number, y: number, down: boolean): void;
