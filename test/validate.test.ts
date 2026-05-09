@@ -78,6 +78,39 @@ describe("validate", () => {
   it("rejects fractional color", () => {
     expect(validate([text("hi", { color: 1.5 })])).toBe(false);
   });
+
+  it("accepts structured floating attach points", () => {
+    expect(validate([
+      open("x", {
+        floating: {
+          attachPoints: { element: 4, parent: 4 },
+        },
+      }),
+      close(),
+    ])).toBe(true);
+  });
+
+  it("accepts floating expand and clipping fields", () => {
+    expect(validate([
+      open("x", {
+        floating: {
+          expand: { width: 2, height: 3 },
+          pointerCaptureMode: 1,
+          clipTo: 1,
+          zIndex: 1024,
+        },
+      }),
+      close(),
+    ])).toBe(true);
+  });
+
+  it("rejects numeric floating attachPoints legacy shape", () => {
+    expect(validate([
+      // deno-lint-ignore no-explicit-any
+      open("x", { floating: { attachPoints: 4 as any } }),
+      close(),
+    ])).toBe(false);
+  });
 });
 
 describe("validated", () => {

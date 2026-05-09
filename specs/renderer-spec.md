@@ -609,9 +609,35 @@ The `open()` constructor currently accepts the following property groups in its
 - **`cornerRadius`** — per-corner radius values, producing rounded box-drawing
   characters
 - **`clip`** — clip region configuration for scroll containers
-- **`floating`** — floating-element configuration (offset, parent reference,
-  attach points, z-index)
+- **`floating`** — floating-element configuration (offset, expansion, parent
+  reference, attach target, structured attach points, pointer capture mode, clip
+  target, z-index)
 - **`scroll`** — scroll container configuration
+
+The current floating surface is:
+
+```ts
+floating?: {
+  x?: number;
+  y?: number;
+  expand?: { width?: number; height?: number };
+  parent?: number;
+  attachTo?: number;
+  attachPoints?: {
+    element?: number;
+    parent?: number;
+  };
+  pointerCaptureMode?: number;
+  clipTo?: number;
+  zIndex?: number;
+}
+```
+
+This shape extends the earlier floating surface in two ways. First,
+`attachPoints` is structured as separate element and parent anchor values
+instead of a single packed enum. Second, the surface exposes additional Clay
+floating controls that were previously unavailable at the TypeScript layer:
+`expand`, `pointerCaptureMode`, and `clipTo`.
 
 The `text()` constructor currently accepts: `color`, `fontSize`,
 `letterSpacing`, `lineHeight`, and attribute flags (`bold`, `italic`,
