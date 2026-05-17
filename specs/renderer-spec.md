@@ -466,6 +466,13 @@ form that the WASM module can process. This transfer is handled internally by
 the renderer and is not an operation the caller performs or observes. The
 transfer mechanism is an implementation detail described in Section 12.1.
 
+If a frame exceeds transfer-buffer capacity while packing string content, the
+renderer MUST throw a descriptive `RangeError` that identifies the condition as
+a transfer-buffer, frame-capacity, or packing overflow. The renderer MUST NOT
+expose only the raw host-level TypedArray message `"offset is out of bounds"`
+for this condition. The error message SHOULD direct callers to render a smaller
+visible slice or reduce frame content.
+
 ### 9.3 Directive identity
 
 Each element directive carries an `id` provided by the caller via `open()`.
